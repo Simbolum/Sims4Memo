@@ -1,0 +1,1950 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S4Memo - Sims Dinasztia Krónika (Cozy Peach UI)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        peach: {
+                            50: '#fdf8f5',
+                            100: '#fbece4',
+                            200: '#f7d8cc',
+                            300: '#f1b8a5',
+                            400: '#e89075',
+                            500: '#df6f4d',
+                            600: '#cd5332',
+                            700: '#ab4025',
+                            800: '#883521',
+                            900: '#702f20',
+                        }
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Supabase JS kliens -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- FontAwesome ikonok -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --bg-gradient: linear-gradient(135deg, #fdf8f5 0%, #fbece4 50%, #f4e3dc 100%);
+            --text-main: #3d2c24;
+            --panel-bg: rgba(255, 255, 255, 0.75);
+            --panel-border: rgba(241, 184, 165, 0.4);
+            --card-shadow: 0 10px 30px -5px rgba(223, 111, 77, 0.08);
+        }
+
+        body.dark-mode {
+            --bg-gradient: linear-gradient(135deg, #1f1715 0%, #2b1d1a 50%, #171110 100%);
+            --text-main: #fceee9;
+            --panel-bg: rgba(43, 29, 26, 0.65);
+            --panel-border: rgba(232, 144, 117, 0.2);
+            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        h1, h2, h3, .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        @keyframes plumbobAnim {
+            0% { transform: translateY(0px) rotate(45deg) scale(1); filter: drop-shadow(0 0 8px rgba(223, 111, 77, 0.7)); }
+            25% { transform: translateY(-4px) rotate(50deg) scale(1.05); filter: drop-shadow(0 0 14px rgba(232, 144, 117, 0.9)); }
+            50% { transform: translateY(-8px) rotate(45deg) scale(1); filter: drop-shadow(0 0 8px rgba(223, 111, 77, 0.7)); }
+            75% { transform: translateY(-4px) rotate(40deg) scale(1.05); filter: drop-shadow(0 0 14px rgba(232, 144, 117, 0.9)); }
+            100% { transform: translateY(0px) rotate(45deg) scale(1); filter: drop-shadow(0 0 8px rgba(223, 111, 77, 0.7)); }
+        }
+        .plumbob-anim {
+            animation: plumbobAnim 3.5s ease-in-out infinite;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--panel-border);
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(232, 144, 117, 0.5);
+        }
+
+        #sideNavMenu {
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #f1b8a5; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #e89075; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- BEJELENTKEZÉSI / REGISZTRÁCIÓS NÉZET -->
+    <div id="authContainer" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-peach-950/30 backdrop-blur-md hidden">
+        <div class="glass-panel w-full max-w-md p-8 rounded-[2.5rem] relative overflow-hidden shadow-2xl">
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-peach-400/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-16 -left-16 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="text-center mb-8 relative z-10">
+                <div class="flex items-center justify-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-peach-500 to-peach-600 rotate-45 rounded-xl flex items-center justify-center shadow-lg shadow-peach-500/40 plumbob-anim"></div>
+                    <span class="text-2xl font-bold font-cinzel tracking-wider">S4Memo</span>
+                </div>
+                <p id="authSubtitle" class="text-xs text-stone-600 dark:text-stone-400 font-medium mt-1">Jelentkezz be a saját dinasztiád kezeléséhez</p>
+            </div>
+
+            <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4 relative z-10">
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 mb-1.5 ml-1">Email cím</label>
+                    <input type="email" id="authEmail" required placeholder="pelda@simsmail.com" class="w-full px-4 py-3 bg-white/90 dark:bg-stone-900/80 border border-peach-200 dark:border-stone-700 rounded-2xl text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 focus:ring-2 focus:ring-peach-500/25 transition shadow-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 mb-1.5 ml-1">Jelszó</label>
+                    <input type="password" id="authPassword" required placeholder="••••••••" class="w-full px-4 py-3 bg-white/90 dark:bg-stone-900/80 border border-peach-200 dark:border-stone-700 rounded-2xl text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 focus:ring-2 focus:ring-peach-500/25 transition shadow-sm">
+                </div>
+                
+                <button type="submit" id="authSubmitBtn" class="w-full py-3.5 bg-gradient-to-r from-peach-500 to-peach-600 hover:from-peach-400 hover:to-peach-500 text-white font-bold rounded-2xl text-sm shadow-lg shadow-peach-500/30 transition-all transform active:scale-95 duration-200">
+                    Bejelentkezés
+                </button>
+            </form>
+
+            <div class="mt-6 text-center relative z-10">
+                <button type="button" onclick="toggleAuthMode()" id="authToggleBtn" class="text-xs text-stone-600 dark:text-stone-400 hover:text-peach-600 dark:hover:text-peach-400 font-medium transition underline underline-offset-4">
+                    Nincs még fiókod? Regisztrálj most!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FŐ ALKALMAZÁS -->
+    <div id="appContainer" class="flex flex-col min-h-screen hidden relative overflow-x-hidden">
+        
+        <button onclick="toggleSideNav()" id="sideNavToggleBtn" class="fixed right-0 top-1/2 -translate-y-1/2 z-50 glass-panel bg-peach-500 hover:bg-peach-600 text-white p-3.5 rounded-l-2xl shadow-xl border-l border-t border-b border-peach-400/60 transition-all transform hover:scale-105 flex items-center justify-center">
+            <i id="sideNavIcon" class="fa-solid fa-chevron-left text-sm transition-transform duration-300"></i>
+        </button>
+
+        <div id="sideNavOverlay" class="fixed inset-0 bg-stone-950/40 backdrop-blur-xs z-40 hidden transition-opacity" onclick="toggleSideNav()"></div>
+        
+        <aside id="sideNavMenu" class="fixed top-0 right-0 h-full w-80 glass-panel z-50 shadow-2xl flex flex-col translate-x-full border-l border-peach-200/50 dark:border-stone-800">
+            <div class="p-6 border-b border-peach-200/50 dark:border-stone-800 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 bg-gradient-to-br from-peach-500 to-peach-600 rotate-45 rounded-lg flex items-center justify-center shadow-md shadow-peach-500/30 plumbob-anim"></div>
+                    <span class="text-lg font-bold font-cinzel">S4Memo Menü</span>
+                </div>
+                <button onclick="toggleSideNav()" class="text-stone-500 hover:text-stone-900 dark:hover:text-white transition p-1.5 rounded-xl hover:bg-peach-100/50 dark:hover:bg-stone-800">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 space-y-3">
+                <button onclick="navigateTo('fooldal')" class="w-full text-left px-4 py-3 rounded-2xl bg-peach-100/40 dark:bg-stone-800/50 hover:bg-peach-200/60 dark:hover:bg-stone-800 font-semibold text-sm transition-all flex items-center gap-3 text-stone-800 dark:text-stone-200 shadow-sm border border-peach-200/30 dark:border-stone-700/50">
+                    <i class="fa-solid fa-house w-5 text-center text-peach-500"></i> Főoldal
+                </button>
+
+                <div class="space-y-1.5">
+                    <button onclick="toggleFamilyDropdown()" class="w-full text-left px-4 py-3 rounded-2xl bg-peach-100/40 dark:bg-stone-800/50 hover:bg-peach-200/60 dark:hover:bg-stone-800 font-semibold text-sm transition-all flex items-center justify-between text-stone-800 dark:text-stone-200 shadow-sm border border-peach-200/30 dark:border-stone-700/50">
+                        <span class="flex items-center gap-3">
+                            <i class="fa-solid fa-network-wired w-5 text-center text-peach-500"></i> Családfa
+                        </span>
+                        <i id="familyChevron" class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
+                    </button>
+                    <div id="familyDropdownContent" class="pl-3 space-y-1.5 pt-1 hidden">
+                        <button onclick="navigateTo('csaladfa-csaladfaim')" class="w-full text-left px-4 py-2.5 rounded-xl bg-peach-500/15 hover:bg-peach-500/25 border border-peach-500/30 text-xs font-bold text-peach-700 dark:text-peach-300 transition-all flex items-center gap-2.5">
+                            <i class="fa-solid fa-folder-tree text-[11px]"></i> Családfáim
+                        </button>
+                        <button onclick="navigateTo('csaladfa-simek')" class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-peach-100/40 dark:hover:bg-stone-800/40 text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white transition-all flex items-center gap-2.5">
+                            <i class="fa-solid fa-user-group text-[11px]"></i> Simek
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="navigateTo('publikum')" class="w-full text-left px-4 py-3 rounded-2xl bg-peach-100/40 dark:bg-stone-800/50 hover:bg-peach-200/60 dark:hover:bg-stone-800 font-semibold text-sm transition-all flex items-center gap-3 text-stone-800 dark:text-stone-200 shadow-sm border border-peach-200/30 dark:border-stone-700/50">
+                    <i class="fa-solid fa-globe w-5 text-center text-peach-500"></i> Publikum
+                </button>
+
+                <button onclick="navigateTo('jatekok')" class="w-full text-left px-4 py-3 rounded-2xl bg-peach-100/40 dark:bg-stone-800/50 hover:bg-peach-200/60 dark:hover:bg-stone-800 font-semibold text-sm transition-all flex items-center gap-3 text-stone-800 dark:text-stone-200 shadow-sm border border-peach-200/30 dark:border-stone-700/50">
+                    <i class="fa-solid fa-gamepad w-5 text-center text-peach-500"></i> Játékok
+                </button>
+            </div>
+
+            <div class="p-5 border-t border-peach-200/50 dark:border-stone-800 text-center">
+                <span class="text-[11px] font-semibold text-peach-600/70 dark:text-peach-400/70 font-cinzel">S4Memo Cozy Edition</span>
+            </div>
+        </aside>
+
+        <header id="mainHeader" class="glass-panel border-b border-peach-200/60 dark:border-stone-800 sticky top-0 z-30 transition-all duration-300">
+            <div class="max-w-7xl mx-auto px-6 py-3.5 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-5 flex-wrap justify-center md:justify-start">
+                    <div class="flex items-center gap-3 mr-2">
+                        <div class="w-8 h-8 bg-gradient-to-br from-peach-500 to-peach-600 rotate-45 rounded-lg flex items-center justify-center shadow-md shadow-peach-500/30 plumbob-anim"></div>
+                        <span class="text-xl font-bold font-cinzel tracking-wider">S4Memo</span>
+                    </div>
+
+                    <nav class="flex items-center gap-1.5 bg-peach-100/60 dark:bg-stone-900/60 p-1.5 rounded-full text-xs font-semibold shadow-inner border border-peach-200/50 dark:border-stone-800">
+                        <button onclick="navigateTo('fooldal')" class="px-4 py-2 rounded-full bg-peach-500 text-white shadow-sm transition-all font-bold">Főoldal</button>
+                        <button onclick="navigateTo('csaladfa-csaladfaim')" class="px-4 py-2 rounded-full text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white transition-all">Családfák</button>
+                        <button onclick="navigateTo('publikum')" class="px-4 py-2 rounded-full text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white transition-all">Publikum</button>
+                        <button onclick="navigateTo('jatekok')" class="px-4 py-2 rounded-full text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white transition-all">Játékok</button>
+                    </nav>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center bg-peach-100/60 dark:bg-stone-900/60 p-1.5 rounded-full text-xs font-semibold shadow-inner border border-peach-200/50 dark:border-stone-800">
+                        <button onclick="setThemeMode('dark')" id="darkBtn" class="px-3.5 py-1.5 rounded-full text-stone-600 dark:text-stone-300 hover:text-stone-900 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-moon text-xs"></i> Dark
+                        </button>
+                        <button onclick="setThemeMode('light')" id="lightBtn" class="px-3.5 py-1.5 rounded-full bg-amber-400 text-stone-900 shadow-sm transition-all flex items-center gap-1.5 font-bold">
+                            <i class="fa-solid fa-sun text-xs"></i> Cozy Peach
+                        </button>
+                    </div>
+
+                    <button onclick="openProfileModal()" class="flex items-center gap-2.5 px-3.5 py-2 rounded-full glass-panel hover:border-peach-400 transition-all shadow-sm">
+                        <div class="relative">
+                            <img id="headerProfileImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Profil" class="w-6 h-6 rounded-full object-cover border-2 border-peach-500">
+                        </div>
+                        <span id="headerProfileName" class="text-xs font-bold hidden sm:inline">Profilom</span>
+                        <i class="fa-solid fa-gear text-xs text-stone-500 ml-0.5"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 w-full mx-auto px-6 py-8 flex flex-col justify-start max-w-7xl">
+            
+            <div id="view-fooldal" class="page-view space-y-6 w-full">
+                <div class="glass-panel p-10 md:p-12 rounded-[2.5rem] relative overflow-hidden shadow-xl border border-peach-200/60">
+                    <div class="absolute -top-20 -right-20 w-64 h-64 bg-peach-400/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    
+                    <div class="relative z-10 max-w-2xl">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-peach-500/15 border border-peach-500/30 text-peach-700 dark:text-peach-300 text-xs font-bold mb-4">
+                            <i class="fa-solid fa-heart text-[10px]"></i> Üdv a Cozy Sims Világban
+                        </div>
+                        <h2 class="text-3xl md:text-4xl font-bold font-cinzel mb-4 leading-tight">Üdvözöllek a Sims 4 Memorable oldalán!</h2>
+                        <p class="text-sm md:text-base text-stone-600 dark:text-stone-300 leading-relaxed mb-6">
+                            Készíts interaktív Sims családfákat, animált vonalakat és szabad karakterbemutatókat meleg, barátságos környezetben.
+                        </p>
+                        <div class="flex items-center gap-3">
+                            <button onclick="navigateTo('csaladfa-csaladfaim')" class="px-6 py-3 bg-gradient-to-r from-peach-500 to-peach-600 hover:from-peach-400 hover:to-peach-500 text-white font-bold rounded-2xl shadow-lg shadow-peach-500/30 transition-all text-xs font-cinzel">
+                                Családfáim megnyitása
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CSALÁDFÁIM NÉZET - TELJES KÉPERNYŐS FIX POZÍCIONÁLÁSSAL -->
+            <div id="view-csaladfa-csaladfaim" class="page-view hidden fixed inset-0 z-20 p-0 m-0 overflow-hidden">
+                
+                <!-- Dinamikus családfa háttér tároló (Fix, nem zoomolódik és nem mozdul) -->
+                <div id="treeBackgroundContainer" class="absolute inset-0 z-0 bg-cover bg-center transition-all duration-300"></div>
+
+                <!-- Itt jelennek meg a simek az aktív családfán (Zoomolható réteg) -->
+                <div id="simsCanvasArea" class="absolute inset-0 z-10 pointer-events-none transition-transform duration-75 origin-center"></div>
+
+                <!-- Bal felső fix doboz: Családfák -->
+                <div class="absolute top-0 left-0 z-30 w-64 p-3.5 space-y-2.5">
+                    <div class="flex items-center justify-between cursor-pointer" onclick="toggleTreeDropdown()">
+                        <div class="flex items-center gap-2">
+                            <div class="w-5 h-5 rounded-md bg-peach-500/25 flex items-center justify-center text-peach-600 dark:text-peach-400 shadow-xs">
+                                <i class="fa-solid fa-network-wired text-[10px]"></i>
+                            </div>
+                            <span class="text-[11px] font-bold font-cinzel tracking-wider uppercase">Családfák</span>
+                        </div>
+                        <i id="treeListChevron" class="fa-solid fa-chevron-up text-[10px] text-stone-500 transition-transform duration-200"></i>
+                    </div>
+
+                    <div id="treeListContainer" class="space-y-1.5 pt-0.5 max-h-[40vh] overflow-y-auto pr-1">
+                        <!-- Dinamikus tartalom -->
+                    </div>
+
+                    <button onclick="openNewFamilyModal()" class="w-full py-2 px-3 bg-gradient-to-r from-peach-500/15 to-peach-600/15 hover:from-peach-500/25 hover:to-peach-600/25 text-peach-700 dark:text-peach-300 border border-peach-500/30 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-plus text-[9px]"></i> Családfa hozzáadása
+                    </button>
+                </div>
+
+                <!-- Bal alul megjelenő Testreszabás doboz (felfelé nyíló menüvel) -->
+                <div id="treeCustomizationWrapper" class="absolute bottom-16 left-4 z-40 hidden flex flex-col items-start">
+                    <!-- Felfelé nyíló tartalom doboz (alapból rejtve) -->
+                    <div id="treeCustomizationMenu" class="glass-panel w-72 mb-2 p-4 rounded-2xl shadow-2xl border border-peach-200/80 dark:border-stone-700 space-y-3.5 hidden transform origin-bottom transition-all">
+                        <div class="text-[11px] font-bold font-cinzel text-peach-600 dark:text-peach-400 border-b border-peach-200/50 dark:border-stone-700 pb-2">
+                            Háttér testreszabása
+                        </div>
+
+                        <!-- Alap hátterek választó -->
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-stone-600 dark:text-stone-300">Alap Hátterek</label>
+                            <select id="presetBackgroundSelect" onchange="handlePresetBackgroundChange(this.value)" class="w-full px-3 py-2 bg-white/90 dark:bg-stone-900/90 border border-peach-200 dark:border-stone-700 rounded-xl text-xs text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 transition shadow-sm">
+                                <option value="">Válassz alap hátteret...</option>
+                                <option value="linear-gradient(135deg, #1f1715 0%, #2b1d1a 50%, #171110 100%)">Sötét Sims (Alap)</option>
+                                <option value="linear-gradient(135deg, #fdf8f5 0%, #fbece4 50%, #f4e3dc 100%)">Cozy Barack</option>
+                                <option value="linear-gradient(135deg, #1e293b 0%, #0f172a 100%)">Éjszakai Kék</option>
+                                <option value="linear-gradient(135deg, #2e1065 0%, #4c1d95 100%)">Királyi Lila</option>
+                                <option value="linear-gradient(135deg, #064e3b 0%, #022c22 100%)">Zöld Kert</option>
+                            </select>
+                        </div>
+
+                        <!-- Egyedi kép tallózás számítógépről -->
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-stone-600 dark:text-stone-300">Egyedi Kép (Számítógépről)</label>
+                            <input type="file" id="localImageInput" accept="image/*" onchange="handleLocalImageUpload(event)" class="hidden">
+                            <button type="button" onclick="document.getElementById('localImageInput').click()" class="w-full py-2 px-3 bg-peach-500/15 hover:bg-peach-500/25 border border-peach-500/30 text-peach-700 dark:text-peach-300 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-folder-open text-[10px]"></i> Kép tallózása...
+                            </button>
+                        </div>
+
+                        <!-- Háttér illesztési mód -->
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-stone-600 dark:text-stone-300">Kép illesztése</label>
+                            <select id="bgSizeSelect" onchange="handleBgSizeChange(this.value)" class="w-full px-3 py-2 bg-white/90 dark:bg-stone-900/90 border border-peach-200 dark:border-stone-700 rounded-xl text-xs text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 transition shadow-sm">
+                                <option value="cover">Kitöltés (Cover - Teljes terület)</option>
+                                <option value="contain">Illesztés (Contain - Teljes kép látszik)</option>
+                                <option value="repeat">Mozaik / Ismétlés (Repeat)</option>
+                                <option value="100% 100%">Nyújtás (Stretch)</option>
+                            </select>
+                        </div>
+
+                        <!-- Háttér homályosítása csúszka -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center text-[10px]">
+                                <span class="font-bold text-stone-600 dark:text-stone-300">Háttér homályosítása</span>
+                                <span id="blurValueLabel" class="font-mono text-peach-600 dark:text-peach-400 font-bold">0 px</span>
+                            </div>
+                            <input type="range" id="bgBlurRange" min="0" max="25" value="0" step="1" oninput="handleBgBlurChange(this.value)" class="w-full accent-peach-500 cursor-pointer">
+                        </div>
+
+                        <!-- Háttér törlése gomb -->
+                        <div>
+                            <button type="button" onclick="clearTreeBackground()" class="w-full py-1.5 px-3 bg-stone-200/70 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-xl text-[10px] font-bold transition">
+                                Háttér alaphelyzetbe
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Fő gomb a felfelé mutató nyíllal -->
+                    <button onclick="toggleTreeCustomizationMenu()" class="glass-panel px-4 py-2.5 rounded-2xl shadow-xl border border-peach-300 dark:border-stone-700 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs flex items-center gap-2.5 transition-all transform hover:scale-105">
+                        <i class="fa-solid fa-palette text-xs"></i>
+                        <span class="font-cinzel tracking-wide">Testreszabás</span>
+                        <i id="customizationArrow" class="fa-solid fa-caret-up text-xs transition-transform duration-200"></i>
+                    </button>
+                </div>
+
+                <!-- Középső interaktív vászon üres üzenet -->
+                <div class="w-full h-full absolute inset-0 pointer-events-none flex items-center justify-center z-20">
+                    <div id="activeTreePlaceholder" class="text-stone-400 dark:text-stone-500 text-xs font-cinzel italic bg-white/40 dark:bg-stone-900/40 px-6 py-4 rounded-2xl backdrop-blur-md border border-peach-200/30">
+                        Válassz ki vagy hozz létre egy családfát a bal felső sarokból a kezdéshez.
+                    </div>
+                </div>
+
+                <!-- Jobb alul megjelenő Zoom és Sim létrehozása lebegő gombok -->
+                <div id="createSimFloatingBtnContainer" class="absolute bottom-8 right-8 z-30 hidden flex flex-col items-end gap-3">
+                    <!-- Zoom vezérlő sáv -->
+                    <div class="glass-panel px-3 py-2 rounded-2xl shadow-lg border border-peach-300 dark:border-stone-700 flex items-center gap-2 bg-white/85 dark:bg-stone-900/85 backdrop-blur-md">
+                        <button onclick="zoomOut()" class="w-8 h-8 rounded-xl bg-peach-100 dark:bg-stone-800 hover:bg-peach-200 text-stone-700 dark:text-stone-300 font-bold flex items-center justify-center transition" title="Kicsinyítés (-)">
+                            <i class="fa-solid fa-magnifying-glass-minus text-xs"></i>
+                        </button>
+                        <span id="zoomLevelLabel" class="text-xs font-mono font-bold text-peach-600 dark:text-peach-400 w-12 text-center">100%</span>
+                        <button onclick="zoomIn()" class="w-8 h-8 rounded-xl bg-peach-100 dark:bg-stone-800 hover:bg-peach-200 text-stone-700 dark:text-stone-300 font-bold flex items-center justify-center transition" title="Nagyítás (+)">
+                            <i class="fa-solid fa-magnifying-glass-plus text-xs"></i>
+                        </button>
+                        <button onclick="resetZoom()" class="w-8 h-8 rounded-xl bg-peach-100 dark:bg-stone-800 hover:bg-peach-200 text-stone-700 dark:text-stone-300 font-bold flex items-center justify-center transition text-[10px]" title="Alaphelyzet (100%)">
+                            1:1
+                        </button>
+                    </div>
+
+                    <button onclick="openCreateSimModal()" class="px-5 py-3.5 bg-gradient-to-r from-peach-500 to-peach-600 hover:from-peach-400 hover:to-peach-500 text-white font-bold rounded-2xl shadow-xl shadow-peach-500/35 transition-all transform hover:scale-105 flex items-center gap-3 text-xs font-cinzel">
+                        <div class="w-4 h-4 bg-white rotate-45 rounded-xs flex items-center justify-center">
+                            <div class="w-2 h-2 bg-peach-600 rotate-45 rounded-xs"></div>
+                        </div>
+                        <span>Sim létrehozása</span>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- SIM JOBB KLIKK KONTEXTUS MENÜ -->
+            <div id="simContextMenu" class="fixed z-[90] hidden glass-panel w-48 rounded-2xl p-1.5 shadow-2xl border border-peach-300 dark:border-stone-700 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md">
+                <button onclick="handleContextMenuEdit()" class="w-full text-left px-3.5 py-2 rounded-xl hover:bg-peach-500 hover:text-white text-xs font-bold transition flex items-center gap-2.5 text-stone-800 dark:text-stone-200">
+                    <i class="fa-solid fa-user-pen text-peach-500"></i> Sim szerkesztése
+                </button>
+                <button onclick="handleContextMenuDelete()" class="w-full text-left px-3.5 py-2 rounded-xl hover:bg-rose-600 hover:text-white text-xs font-bold transition flex items-center gap-2.5 text-rose-600 dark:text-rose-400">
+                    <i class="fa-solid fa-trash-can"></i> Sim törlése
+                </button>
+            </div>
+
+            <div id="view-csaladfa-simek" class="page-view space-y-6 hidden w-full">
+                <div class="glass-panel p-10 rounded-[2.5rem] shadow-xl border border-peach-200/60">
+                    <h2 class="text-2xl font-bold font-cinzel mb-2 text-peach-600 dark:text-peach-400">Simek</h2>
+                    <p class="text-xs md:text-sm text-stone-600 dark:text-stone-300">A mentéseidben szereplő összes Sim részletes adatlapja, tulajdonságai és kapcsolatai.</p>
+                </div>
+            </div>
+
+            <div id="view-publikum" class="page-view space-y-6 hidden w-full">
+                <div class="glass-panel p-10 rounded-[2.5rem] shadow-xl border border-peach-200/60">
+                    <h2 class="text-2xl font-bold font-cinzel mb-2 text-peach-600 dark:text-peach-400">Publikum</h2>
+                    <p class="text-xs md:text-sm text-stone-600 dark:text-stone-300">Böngéssz más játékosok nyilvános történetei, képei és galériái között.</p>
+                </div>
+            </div>
+
+            <div id="view-jatekok" class="page-view space-y-6 hidden w-full">
+                <div class="glass-panel p-10 rounded-[2.5rem] shadow-xl border border-peach-200/60">
+                    <h2 class="text-2xl font-bold font-cinzel mb-2 text-peach-600 dark:text-peach-400">Játékok</h2>
+                    <p class="text-xs md:text-sm text-stone-600 dark:text-stone-300">Kiegészítő kihívások, mini-játékok és interaktív elemek a Sims élmény fokozásához.</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ÚJ CSALÁDFA LÉTREHOZÓ MODÁL -->
+    <div id="newFamilyModal" class="fixed inset-0 bg-peach-950/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel max-w-sm w-full rounded-[2rem] p-7 relative shadow-2xl border border-peach-200/80">
+            <div class="flex justify-between items-center mb-5 border-b border-peach-200/50 dark:border-stone-800 pb-3">
+                <h3 class="text-base font-bold font-cinzel flex items-center gap-2"><i class="fa-solid fa-folder-tree text-peach-500"></i> Új családfa</h3>
+                <button onclick="closeNewFamilyModal()" class="text-stone-500 hover:text-stone-900 transition p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="newFamilyForm" onsubmit="handleCreateFamilyTree(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 mb-1.5 ml-1">Családfa neve</label>
+                    <input type="text" id="newFamilyNameInput" required placeholder="Pl. Goth Dinasztia" class="w-full px-4 py-3 bg-white/90 dark:bg-stone-900/90 border border-peach-200 dark:border-stone-700 rounded-2xl text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 transition shadow-sm">
+                </div>
+
+                <div class="flex justify-end gap-2.5 pt-2">
+                    <button type="button" onclick="closeNewFamilyModal()" class="px-4 py-2.5 bg-stone-200/70 dark:bg-stone-800 hover:bg-stone-300 text-stone-700 dark:text-stone-300 rounded-xl text-xs font-bold transition">Mégse</button>
+                    <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-peach-500 to-peach-600 hover:from-peach-400 hover:to-peach-500 text-white rounded-xl text-xs font-bold shadow-md shadow-peach-500/25 transition">Létrehozás</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SIM LÉTREHOZÁSA / SZERKESZTÉSE MODÁL -->
+    <div id="createSimModal" class="fixed inset-0 bg-peach-950/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-panel max-w-xl w-full rounded-[2.5rem] p-7 relative shadow-2xl border border-peach-200/80 my-8">
+            <div class="flex justify-between items-center mb-6 border-b border-peach-200/50 dark:border-stone-800 pb-3">
+                <h3 id="simModalTitle" class="text-lg font-bold font-cinzel flex items-center gap-2">
+                    <div class="w-4 h-4 bg-peach-500 rotate-45 rounded-xs flex items-center justify-center">
+                        <div class="w-2 h-2 bg-white rotate-45 rounded-xs"></div>
+                    </div>
+                    Sim Létrehozása
+                </h3>
+                <button onclick="closeCreateSimModal()" class="text-stone-500 hover:text-stone-900 transition p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <!-- 2 átkattintható opció a modul tetején egymás mellett -->
+            <div class="flex items-center justify-center gap-2 bg-peach-100/70 dark:bg-stone-900/70 p-1.5 rounded-2xl mb-6 border border-peach-200/50 dark:border-stone-800">
+                <button type="button" onclick="switchSimModalTab('karakter')" id="simTabBtnKarakter" class="flex-1 py-2.5 rounded-xl bg-peach-500 text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 font-cinzel">
+                    <i class="fa-solid fa-user text-xs"></i> Karakter
+                </button>
+                <button type="button" onclick="switchSimModalTab('naplo')" id="simTabBtnNaplo" class="flex-1 py-2.5 rounded-xl text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 font-cinzel">
+                    <i class="fa-solid fa-book-open text-xs"></i> Napló
+                </button>
+            </div>
+
+            <form id="createSimForm" onsubmit="handleCreateSimSubmit(event)" class="space-y-5">
+                
+                <!-- KARAKTER FÜL TARTALMA -->
+                <div id="simTabContentKarakter" class="space-y-6">
+                    
+                    <!-- Profilkép feltöltés, nagyítás és effektek -->
+                    <div class="flex flex-col items-center gap-3">
+                        <input type="file" id="simLocalAvatarInput" accept="image/*" onchange="handleSimAvatarUpload(event)" class="hidden">
+                        
+                        <div class="relative group cursor-pointer" onclick="openImageCropperModal()" title="Kattints a kép nagyításához és beigazításához">
+                            <div id="simAvatarOuterFrame" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-peach-500 overflow-hidden bg-stone-100 dark:bg-stone-800 shadow-lg relative transition-all duration-300">
+                                <img id="simAvatarPreview" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover" style="transition: filter 0.3s ease;">
+                                
+                                <div class="absolute inset-0 bg-stone-900/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <i class="fa-solid fa-crop text-white text-2xl mb-1"></i>
+                                    <span class="text-white text-[10px] font-bold uppercase tracking-wider">Beigazítás</span>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="text-[10px] text-stone-500 font-medium"><i class="fa-solid fa-computer-mouse text-peach-500 mr-1"></i> Kattints a képre a nagyításhoz és egérrel való beigazításhoz</span>
+                        
+                        <!-- ÉLŐ / HALOTT VÁLASZTÓ GOMB -->
+                        <div class="w-full flex flex-col items-center mt-2">
+                            <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 mb-1.5">Státusz (Élő / Halott)</label>
+                            <div class="inline-flex rounded-2xl p-1 bg-peach-100/80 dark:bg-stone-900/80 border border-peach-200 dark:border-stone-700 shadow-inner">
+                                <button type="button" id="statusAliveBtn" onclick="setSimStatus('alive')" class="px-5 py-2 rounded-xl bg-peach-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2">
+                                    <i class="fa-solid fa-heart-pulse text-xs"></i> Élő
+                                </button>
+                                <button type="button" id="statusDeadBtn" onclick="setSimStatus('dead')" class="px-5 py-2 rounded-xl text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center gap-2">
+                                    <i class="fa-solid fa-ghost text-xs"></i> Halott
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Képeffektek -->
+                        <div class="w-full mt-1">
+                            <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 mb-1.5 ml-1">Képeffekt</label>
+                            <select id="simAvatarEffect" onchange="applySimImageEffect(this.value)" class="w-full px-4 py-2.5 bg-white/90 dark:bg-stone-900/90 border border-peach-200 dark:border-stone-700 rounded-xl text-xs text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 transition shadow-sm cursor-pointer">
+                                <option value="none">Alapértelmezett (Nincs)</option>
+                                <option value="grayscale(100%)">Fekete-Fehér (Vintage)</option>
+                                <option value="sepia(80%)">Szépia (Nosztalgia)</option>
+                                <option value="contrast(130%) saturate(150%)">Élénk Színek (Vibrant)</option>
+                                <option value="blur(1.5px)">Homályos (Emlék)</option>
+                                <option value="brightness(120%) contrast(110%)">Világosított (Glamour)</option>
+                                <option value="hue-rotate(90deg)">Alien (Zöldes aurájú)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Név megadása -->
+                    <div class="flex gap-3">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 mb-1.5 ml-1">Vezetéknév</label>
+                            <input type="text" id="simLastName" placeholder="Pl. Goth" required class="w-full px-4 py-3 bg-white/90 dark:bg-stone-900/90 border border-peach-200 dark:border-stone-700 rounded-2xl text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 transition shadow-sm">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 mb-1.5 ml-1">Keresztnév</label>
+                            <input type="text" id="simFirstName" placeholder="Pl. Bella" required class="w-full px-4 py-3 bg-white/90 dark:bg-stone-900/90 border border-peach-200 dark:border-stone-700 rounded-2xl text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 transition shadow-sm">
+                        </div>
+                    </div>
+
+                    <!-- GALLÉRIA SÁV -->
+                    <div class="space-y-2 pt-2 border-t border-peach-200/50 dark:border-stone-800">
+                        <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 ml-1 font-cinzel">Galléria – Pillanatok a Sim életéből</label>
+                        
+                        <input type="file" id="simGalleryFileInput" accept="image/*" multiple onchange="handleSimGalleryUpload(event)" class="hidden">
+
+                        <div class="relative w-full">
+                            <div id="simGalleryContainer" class="flex items-center gap-3 overflow-x-auto pb-3 pt-1 px-1 scroll-smooth">
+                                <button type="button" onclick="document.getElementById('simGalleryFileInput').click()" class="flex-shrink-0 w-24 h-24 rounded-2xl border-2 border-dashed border-peach-400 bg-peach-500/10 hover:bg-peach-500/20 text-peach-600 dark:text-peach-400 flex flex-col items-center justify-center gap-1 transition shadow-sm sticky left-0 z-10 backdrop-blur-xs" title="Kép hozzáadása a Sim életéről">
+                                    <i class="fa-solid fa-plus text-xl"></i>
+                                    <span class="text-[10px] font-bold">Hozzáadás</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <div class="space-y-1.5">
+                            <button type="button" onclick="toggleSimBuilderSubMenu('age')" id="simAgeMenuBtn" class="w-full py-2.5 px-3 bg-peach-100/70 dark:bg-stone-900/80 hover:bg-peach-200/70 border border-peach-200 dark:border-stone-700 text-stone-800 dark:text-stone-200 rounded-xl text-xs font-bold transition flex items-center justify-between shadow-sm">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-child-reaching text-peach-500"></i> Életkor</span>
+                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                            </button>
+                            <div id="simAgeDropdown" class="hidden space-y-1 bg-white/95 dark:bg-stone-900/95 p-2 rounded-xl border border-peach-200 dark:border-stone-700 shadow-md">
+                                <select id="simAgeSelect" onchange="handleSimAgeChange(this.value)" class="w-full px-2.5 py-1.5 bg-stone-50 dark:bg-stone-800 border border-peach-200 dark:border-stone-700 rounded-lg text-xs text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500">
+                                    <option value="Baba">Baba</option>
+                                    <option value="Infant">Infant</option>
+                                    <option value="Tipegő">Tipegő</option>
+                                    <option value="Gyerek">Gyerek</option>
+                                    <option value="Tini">Tini</option>
+                                    <option value="Fiatal felnőtt">Fiatal felnőtt</option>
+                                    <option value="Felnőtt">Felnőtt</option>
+                                    <option value="Idős">Idős</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <button type="button" onclick="toggleSimBuilderSubMenu('frame')" id="simFrameMenuBtn" class="w-full py-2.5 px-3 bg-peach-100/70 dark:bg-stone-900/80 hover:bg-peach-200/70 border border-peach-200 dark:border-stone-700 text-stone-800 dark:text-stone-200 rounded-xl text-xs font-bold transition flex items-center justify-between shadow-sm">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-palette text-peach-500"></i> Keretszín</span>
+                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                            </button>
+                            <div id="simFrameDropdown" class="hidden space-y-1 bg-white/95 dark:bg-stone-900/95 p-2 rounded-xl border border-peach-200 dark:border-stone-700 shadow-md">
+                                <select id="simFrameColorSelect" onchange="handleSimFrameColorChange(this.value)" class="w-full px-2.5 py-1.5 bg-stone-50 dark:bg-stone-800 border border-peach-200 dark:border-stone-700 rounded-lg text-xs text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500">
+                                    <option value="border-peach-500 shadow-peach-500/50">Cozy Barack</option>
+                                    <option value="border-emerald-500 shadow-emerald-500/50">Zöld (Plumbob)</option>
+                                    <option value="border-blue-500 shadow-blue-500/50">Kék</option>
+                                    <option value="border-purple-500 shadow-purple-500/50">Lila</option>
+                                    <option value="border-pink-500 shadow-pink-500/50">Rózsaszín</option>
+                                    <option value="border-amber-400 shadow-amber-400/50">Arany</option>
+                                    <option value="border-rose-600 shadow-rose-600/50">Vörös</option>
+                                    <option value="border-stone-400 shadow-stone-400/50">Szürke / Semleges</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SZÜLŐK SZEKCIÓ -->
+                    <div class="space-y-3 pt-3 border-t border-peach-200/50 dark:border-stone-800">
+                        <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 ml-1 font-cinzel">
+                            <i class="fa-solid fa-people-roof text-peach-500 mr-1.5"></i> Szülők (Háztartás simei)
+                        </label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-stone-500 dark:text-stone-400 mb-1 ml-1">Anya</label>
+                                <select id="simMotherSelect" class="w-full px-3 py-2.5 bg-white/90 dark:bg-stone-900/90 border border-peach-200 dark:border-stone-700 rounded-xl text-xs text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 transition shadow-sm">
+                                    <option value="">Nincs megadva</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-stone-500 dark:text-stone-400 mb-1 ml-1">Apa</label>
+                                <select id="simFatherSelect" class="w-full px-3 py-2.5 bg-white/90 dark:bg-stone-900/90 border border-peach-200 dark:border-stone-700 rounded-xl text-xs text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 transition shadow-sm">
+                                    <option value="">Nincs megadva</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- NAPLÓ FÜL TARTALMA -->
+                <div id="simTabContentNaplo" class="space-y-4 hidden">
+                    <div class="text-center py-8 text-stone-400 text-xs italic">
+                        A Sim naplója és történetei ide fognak kerülni...
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2.5 pt-4 border-t border-peach-200/50 dark:border-stone-800">
+                    <button type="button" onclick="closeCreateSimModal()" class="px-5 py-2.5 bg-stone-200/70 dark:bg-stone-800 hover:bg-stone-300 text-stone-700 dark:text-stone-300 rounded-xl text-xs font-bold transition">Mégse</button>
+                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-peach-500 to-peach-600 hover:from-peach-400 hover:to-peach-500 text-white rounded-xl text-xs font-bold shadow-md shadow-peach-500/25 transition">Mentés</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- KÉP NAGYÍTÓ ÉS BEIGAZÍTÓ (PAN & ZOOM) MODÁL -->
+    <div id="imageCropperModal" class="fixed inset-0 bg-stone-950/70 backdrop-blur-md z-[70] hidden flex items-center justify-center p-4">
+        <div class="glass-panel max-w-lg w-full rounded-[2.5rem] p-6 relative shadow-2xl border border-peach-200/80 flex flex-col items-center">
+            <div class="w-full flex justify-between items-center mb-4 border-b border-peach-200/50 dark:border-stone-800 pb-3">
+                <h3 class="text-base font-bold font-cinzel flex items-center gap-2 text-peach-600 dark:text-peach-400">
+                    <i class="fa-solid fa-arrows-to-dot"></i> Kép beigazítása és nagyítása
+                </h3>
+                <button onclick="closeImageCropperModal()" class="text-stone-500 hover:text-stone-900 transition p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="w-full space-y-4 flex flex-col items-center">
+                <button type="button" onclick="document.getElementById('simLocalAvatarInput').click()" class="py-2 px-4 bg-peach-500/15 hover:bg-peach-500/25 border border-peach-500/30 text-peach-700 dark:text-peach-300 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                    <i class="fa-solid fa-folder-open"></i> Másik kép tallózása...
+                </button>
+
+                <div id="cropperViewport" class="w-64 h-64 sm:w-72 sm:h-72 rounded-full border-4 border-peach-500 overflow-hidden relative bg-stone-900 cursor-grab active:cursor-grabbing shadow-inner select-none"
+                     onwheel="handleCropperWheel(event)"
+                     onmousedown="startCropperDrag(event)"
+                     onmousemove="duringCropperDrag(event)"
+                     onmouseup="endCropperDrag()"
+                     onmouseleave="endCropperDrag()"
+                     ontouchstart="startCropperTouch(event)"
+                     ontouchmove="duringCropperTouch(event)"
+                     ontouchend="endCropperDrag()">
+                    <img id="cropperImage" src="" class="absolute max-w-none select-none pointer-events-none" style="transform-origin: 0 0;">
+                </div>
+
+                <div class="text-center space-y-1">
+                    <p class="text-xs font-bold text-stone-700 dark:text-stone-300">Fogd meg egérrel a képet a mozgatáshoz, és görgess a nagyításhoz/kicsinyítéshez!</p>
+                    <p class="text-[10px] text-stone-400">A kereten belüli rész lesz látható a Sim profilképén.</p>
+                </div>
+            </div>
+
+            <div class="w-full flex justify-end gap-2.5 pt-5 mt-4 border-t border-peach-200/50 dark:border-stone-800">
+                <button type="button" onclick="closeImageCropperModal()" class="px-4 py-2 bg-stone-200/70 dark:bg-stone-800 hover:bg-stone-300 text-stone-700 dark:text-stone-300 rounded-xl text-xs font-bold transition">Mégse</button>
+                <button type="button" onclick="saveCroppedImage()" class="px-5 py-2 bg-gradient-to-r from-peach-500 to-peach-600 hover:from-peach-400 hover:to-peach-500 text-white rounded-xl text-xs font-bold shadow-md shadow-peach-500/25 transition">Kész / Mentés</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GALLÉRIA KÉP NAGYÍTÓ (LIGHTBOX) MODÁL NYILAKKAL -->
+    <div id="galleryLightboxModal" class="fixed inset-0 bg-stone-950/85 backdrop-blur-md z-[80] hidden flex items-center justify-center p-4">
+        <div class="relative max-w-4xl w-full h-full flex flex-col items-center justify-center">
+            <button onclick="closeGalleryLightbox()" class="absolute top-4 right-4 text-white/80 hover:text-white bg-stone-900/60 hover:bg-stone-900 p-3 rounded-full transition z-20">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <button onclick="prevGalleryImage()" class="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 text-white/80 hover:text-white bg-stone-900/60 hover:bg-stone-900 p-4 rounded-full transition z-20 shadow-lg">
+                <i class="fa-solid fa-chevron-left text-xl"></i>
+            </button>
+
+            <button onclick="nextGalleryImage()" class="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 text-white/80 hover:text-white bg-stone-900/60 hover:bg-stone-900 p-4 rounded-full transition z-20 shadow-lg">
+                <i class="fa-solid fa-chevron-right text-xl"></i>
+            </button>
+
+            <div class="max-w-full max-h-[80vh] overflow-hidden rounded-2xl shadow-2xl border border-peach-500/30 bg-stone-900 flex items-center justify-center p-2">
+                <img id="lightboxImage" src="" class="max-w-full max-h-[75vh] object-contain select-none">
+            </div>
+
+            <div id="lightboxCounter" class="mt-4 text-white/80 text-xs font-bold font-cinzel tracking-wider">
+                1 / 1
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFIL SZERKESZTŐ MODÁL -->
+    <div id="profileModal" class="fixed inset-0 bg-peach-950/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-panel max-w-md w-full rounded-[2.5rem] p-7 relative shadow-2xl border border-peach-200/80">
+            <div class="flex justify-between items-center mb-6 border-b border-peach-200/50 dark:border-stone-800 pb-3">
+                <h3 class="text-lg font-bold font-cinzel flex items-center gap-2"><i class="fa-solid fa-user-pen text-peach-500"></i> Profil Beállítások</h3>
+                <button onclick="closeProfileModal()" class="text-stone-500 hover:text-stone-900 transition p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="profileForm" onsubmit="handleProfileSave(event)" class="space-y-4">
+                <div class="flex flex-col items-center justify-center mb-4">
+                    <div id="avatarFramePreview" class="relative p-1 rounded-full border-2 border-peach-500 shadow-lg">
+                        <img id="modalAvatarPreview" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" class="w-20 h-20 rounded-full object-cover">
+                    </div>
+                    <span class="text-[11px] text-stone-500 mt-2 font-medium">Válaszd ki a profilképed és kereted</span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 mb-1 ml-1">Megjelenített Név</label>
+                    <input type="text" id="profileNameInput" placeholder="Pl. SimGuru Anna" class="w-full px-4 py-3 bg-white/90 dark:bg-stone-900/90 border border-peach-200 dark:border-stone-700 rounded-2xl text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 transition shadow-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 mb-1 ml-1">Profilkép URL</label>
+                    <input type="url" id="profileAvatarInput" placeholder="https://..." class="w-full px-4 py-3 bg-white/90 dark:bg-stone-900/90 border border-peach-200 dark:border-stone-700 rounded-2xl text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 transition shadow-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 mb-1 ml-1">Profil Keret Stílusa</label>
+                    <select id="profileFrameSelect" class="w-full px-4 py-3 bg-white/90 dark:bg-stone-900/90 border border-peach-200 dark:border-stone-700 rounded-2xl text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 transition shadow-sm">
+                        <option value="border-peach-500 shadow-peach-500/50">Cozy Barack (Klasszikus)</option>
+                        <option value="border-purple-500 shadow-purple-500/50">Lila Ragyogás</option>
+                        <option value="border-pink-500 shadow-pink-500/50">Rózsás Romantika</option>
+                        <option value="border-amber-400 shadow-amber-400/50">Királyi Arany</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 mb-1 ml-1">Bio / Leírás magamról</label>
+                    <textarea id="profileBioInput" rows="2" placeholder="Írj pár szót magadról vagy a játékstílusodról..." class="w-full px-4 py-3 bg-white/90 dark:bg-stone-900/90 border border-peach-200 dark:border-stone-700 rounded-2xl text-sm text-stone-800 dark:text-stone-100 focus:outline-none focus:border-peach-500 transition shadow-sm"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 mb-1 ml-1">Email Cím</label>
+                    <input type="email" id="profileEmailInput" disabled class="w-full px-4 py-3 bg-stone-100 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700 rounded-2xl text-sm text-stone-400 cursor-not-allowed">
+                </div>
+
+                <div class="flex items-center justify-between pt-4 border-t border-peach-200/50 dark:border-stone-800 gap-2">
+                    <button type="button" onclick="handleLogout()" class="px-4 py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl text-xs font-bold transition border border-rose-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-right-from-bracket"></i> Kilépés
+                    </button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeProfileModal()" class="px-4 py-2.5 bg-stone-200/70 dark:bg-stone-800 hover:bg-stone-300 text-stone-700 dark:text-stone-300 rounded-xl text-xs font-bold transition">Mégse</button>
+                        <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-peach-500 to-peach-600 hover:from-peach-400 hover:to-peach-500 text-white rounded-xl text-xs font-bold shadow-md shadow-peach-500/25 transition">Mentés</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Logika -->
+    <script>
+        const SUPABASE_URL = 'https://ipvcthmgqbzsiuiilgtc.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_zZPHUc8VX9uT6peK4qOiVw_0Dd1TLDu';
+        
+        let supabaseClient = null;
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            console.error("Supabase hiba:", e);
+        }
+
+        let currentUser = null;
+        let isSignUpMode = false;
+        let familyTrees = [];
+        let activeFamilyTree = null;
+        let familySims = [];
+
+        let simGalleryImages = [];
+        let simSelectedAge = 'Fiatal felnőtt';
+        let simSelectedFrame = 'border-peach-500 shadow-peach-500/50';
+        let currentLightboxIndex = 0;
+
+        // ZOOM ÁLLAPOT
+        let currentZoom = 1;
+
+        let currentBgConfig = {
+            value: '',
+            size: 'cover',
+            blur: 0
+        };
+
+        let userProfile = {
+            name: '',
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+            frame: 'border-peach-500 shadow-peach-500/50',
+            bio: ''
+        };
+
+        let simStatusValue = 'alive';
+        let editingSimId = null;
+        let contextMenuSimId = null;
+
+        let simImageTransform = {
+            scale: 1,
+            x: 0,
+            y: 0,
+            naturalWidth: 0,
+            naturalHeight: 0
+        };
+        let isDraggingCropper = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+
+        // SIM DRAG STATE
+        let activeDraggedSimId = null;
+        let simDragOffsetX = 0;
+        let simDragOffsetY = 0;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const savedTheme = localStorage.getItem('s4memo_theme');
+            if (savedTheme === 'dark') {
+                setThemeMode('dark');
+            } else {
+                setThemeMode('light');
+            }
+
+            if (!supabaseClient) {
+                alert("Kérlek add meg a Supabase URL-t és Anon Key-t a kódban!");
+                return;
+            }
+
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            await handleSession(session);
+
+            supabaseClient.auth.onAuthStateChange(async (event, session) => {
+                await handleSession(session);
+            });
+
+            // Globális egér/érintés események a Sim húzáshoz
+            window.addEventListener('mousemove', handleGlobalSimDragMove);
+            window.addEventListener('mouseup', handleGlobalSimDragEnd);
+            window.addEventListener('touchmove', handleGlobalSimDragMove, { passive: false });
+            window.addEventListener('touchend', handleGlobalSimDragEnd);
+
+            // Egérkerék ZOOM esemény figyelése a családfa nézeten
+            const treeContainer = document.getElementById('view-csaladfa-csaladfaim');
+            if (treeContainer) {
+                treeContainer.addEventListener('wheel', (e) => {
+                    if (treeContainer.classList.contains('hidden')) return;
+                    if (e.target.closest('#treeCustomizationMenu') || e.target.closest('#treeListContainer') || e.target.closest('#simContextMenu')) return;
+                    
+                    e.preventDefault();
+                    if (e.deltaY < 0) {
+                        zoomIn();
+                    } else {
+                        zoomOut();
+                    }
+                }, { passive: false });
+            }
+        });
+
+        // ZOOM FUNKCIÓK
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom + 0.15, 2.5);
+            applySimsZoom();
+        }
+
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom - 0.15, 0.3);
+            applySimsZoom();
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            applySimsZoom();
+        }
+
+        function applySimsZoom() {
+            const canvasArea = document.getElementById('simsCanvasArea');
+            if (canvasArea) {
+                canvasArea.style.transform = `scale(${currentZoom})`;
+            }
+            const label = document.getElementById('zoomLevelLabel');
+            if (label) {
+                label.textContent = `${Math.round(currentZoom * 100)}%`;
+            }
+        }
+
+        function toggleSideNav() {
+            const menu = document.getElementById('sideNavMenu');
+            const overlay = document.getElementById('sideNavOverlay');
+            const icon = document.getElementById('sideNavIcon');
+
+            const isOpen = menu.classList.contains('translate-x-full');
+
+            if (isOpen) {
+                menu.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                menu.classList.add('translate-x-full');
+                overlay.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
+        function toggleFamilyDropdown() {
+            const dropdown = document.getElementById('familyDropdownContent');
+            const chevron = document.getElementById('familyChevron');
+            dropdown.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        function toggleTreeDropdown() {
+            const container = document.getElementById('treeListContainer');
+            const chevron = document.getElementById('treeListChevron');
+            container.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        function toggleTreeCustomizationMenu() {
+            const menu = document.getElementById('treeCustomizationMenu');
+            const arrow = document.getElementById('customizationArrow');
+            menu.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-180');
+        }
+
+        function toggleSimBuilderSubMenu(type) {
+            const ageDrop = document.getElementById('simAgeDropdown');
+            const frameDrop = document.getElementById('simFrameDropdown');
+            if (type === 'age') {
+                ageDrop.classList.toggle('hidden');
+                frameDrop.classList.add('hidden');
+            } else {
+                frameDrop.classList.toggle('hidden');
+                ageDrop.classList.add('hidden');
+            }
+        }
+
+        function handleSimAgeChange(val) {
+            simSelectedAge = val;
+            document.getElementById('simAgeDropdown').classList.add('hidden');
+        }
+
+        function handleSimFrameColorChange(val) {
+            simSelectedFrame = val;
+            const outerFrame = document.getElementById('simAvatarOuterFrame');
+            if (outerFrame) {
+                outerFrame.className = `w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 ${val} overflow-hidden bg-stone-100 dark:bg-stone-800 shadow-lg relative transition-all duration-300`;
+            }
+            document.getElementById('simFrameDropdown').classList.add('hidden');
+        }
+
+        function navigateTo(pageId) {
+            const views = document.querySelectorAll('.page-view');
+            views.forEach(v => v.classList.add('hidden'));
+
+            const target = document.getElementById('view-' + pageId);
+            if (target) {
+                target.classList.remove('hidden');
+            }
+
+            const mainHeader = document.getElementById('mainHeader');
+            if (pageId === 'csaladfa-csaladfaim') {
+                mainHeader.classList.add('hidden');
+                resetZoom(); // Visszaállítjuk alap zoomra váltáskor
+            } else {
+                mainHeader.classList.remove('hidden');
+            }
+
+            if (pageId === 'csaladfa-csaladfaim' && currentUser) {
+                fetchFamilyTrees();
+            }
+
+            const menu = document.getElementById('sideNavMenu');
+            if (!menu.classList.contains('translate-x-full')) {
+                toggleSideNav();
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function setThemeMode(mode) {
+            const darkBtn = document.getElementById('darkBtn');
+            const lightBtn = document.getElementById('lightBtn');
+
+            if (mode === 'dark') {
+                document.body.classList.add('dark-mode');
+                darkBtn.className = "px-3.5 py-1.5 rounded-full bg-peach-600 text-white shadow-sm transition-all flex items-center gap-1.5 font-bold";
+                lightBtn.className = "px-3.5 py-1.5 rounded-full text-stone-600 dark:text-stone-300 hover:text-stone-900 transition-all flex items-center gap-1.5";
+                localStorage.setItem('s4memo_theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                darkBtn.className = "px-3.5 py-1.5 rounded-full text-stone-600 dark:text-stone-300 hover:text-stone-900 transition-all flex items-center gap-1.5";
+                lightBtn.className = "px-3.5 py-1.5 rounded-full bg-amber-400 text-stone-900 shadow-sm transition-all flex items-center gap-1.5 font-bold";
+                localStorage.setItem('s4memo_theme', 'light');
+            }
+            if (activeFamilyTree && (!currentBgConfig.value || currentBgConfig.value === '')) {
+                applyTreeBackground();
+            }
+        }
+
+        async function handleSession(session) {
+            currentUser = session?.user || null;
+            if (currentUser) {
+                document.getElementById('authContainer').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                
+                await loadOrCreateUserProfile();
+                updateProfileUI();
+                fetchFamilyTrees();
+            } else {
+                document.getElementById('appContainer').classList.add('hidden');
+                document.getElementById('authContainer').classList.remove('hidden');
+            }
+        }
+
+        async function loadOrCreateUserProfile() {
+            if (!currentUser || !supabaseClient) return;
+
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+
+            if (data) {
+                userProfile.name = data.display_name || currentUser.email.split('@')[0];
+                userProfile.avatar = data.avatar_url || userProfile.avatar;
+                userProfile.bio = data.bio || '';
+            } else {
+                const defaultName = currentUser.email.split('@')[0];
+                await supabaseClient.from('profiles').insert([
+                    { id: currentUser.id, display_name: defaultName, avatar_url: userProfile.avatar, bio: '' }
+                ]);
+                userProfile.name = defaultName;
+            }
+        }
+
+        function updateProfileUI() {
+            document.getElementById('headerProfileName').textContent = userProfile.name || currentUser?.email;
+            const img = document.getElementById('headerProfileImg');
+            img.src = userProfile.avatar;
+            img.className = `w-6 h-6 rounded-full object-cover border-2 ${userProfile.frame}`;
+        }
+
+        function openProfileModal() {
+            if (!currentUser) return;
+            document.getElementById('profileNameInput').value = userProfile.name;
+            document.getElementById('profileAvatarInput').value = userProfile.avatar;
+            document.getElementById('profileFrameSelect').value = userProfile.frame;
+            document.getElementById('profileBioInput').value = userProfile.bio;
+            document.getElementById('profileEmailInput').value = currentUser.email;
+            document.getElementById('modalAvatarPreview').src = userProfile.avatar;
+            
+            document.getElementById('profileModal').classList.remove('hidden');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.add('hidden');
+        }
+
+        async function handleProfileSave(e) {
+            e.preventDefault();
+            if (!currentUser || !supabaseClient) return;
+
+            userProfile.name = document.getElementById('profileNameInput').value;
+            userProfile.avatar = document.getElementById('profileAvatarInput').value || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80';
+            userProfile.frame = document.getElementById('profileFrameSelect').value;
+            userProfile.bio = document.getElementById('profileBioInput').value;
+
+            const { error } = await supabaseClient
+                .from('profiles')
+                .update({
+                    display_name: userProfile.name,
+                    avatar_url: userProfile.avatar,
+                    bio: userProfile.bio,
+                    updated_at: new Date()
+                })
+                .eq('id', currentUser.id);
+
+            if (error) {
+                alert('Hiba a profil mentésekor: ' + error.message);
+                return;
+            }
+
+            updateProfileUI();
+            closeProfileModal();
+            alert('Profil sikeresen frissítve az adatbázisban!');
+        }
+
+        function toggleAuthMode() {
+            isSignUpMode = !isSignUpMode;
+            const subtitle = document.getElementById('authSubtitle');
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const toggleBtn = document.getElementById('authToggleBtn');
+
+            if (isSignUpMode) {
+                subtitle.textContent = "Hozz létre fiókot a családfád online mentéséhez";
+                submitBtn.textContent = "Regisztráció";
+                toggleBtn.textContent = "Már van fiókod? Jelentkezz be!";
+            } else {
+                subtitle.textContent = "Jelentkezz be a saját dinasztiád kezeléséhez";
+                submitBtn.textContent = "Bejelentkezés";
+                toggleBtn.textContent = "Nincs még fiókod? Regisztrálj most!";
+            }
+        }
+
+        async function handleAuthSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+
+            if (isSignUpMode) {
+                const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                if (error) {
+                    alert('Regisztrációs hiba: ' + error.message);
+                } else {
+                    alert('Sikeres regisztráció! Kérlek ellenőrizd az emailed a megerősítéshez, vagy jelentkezz be.');
+                    isSignUpMode = false;
+                    toggleAuthMode();
+                }
+            } else {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) {
+                    alert('Bejelentkezési hiba: ' + error.message);
+                }
+            }
+        }
+
+        async function handleLogout() {
+            closeProfileModal();
+            await supabaseClient.auth.signOut();
+        }
+
+        async function fetchFamilyTrees() {
+            if (!currentUser || !supabaseClient) return;
+
+            const { data, error } = await supabaseClient
+                .from('family_trees')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Hiba a családfák betöltésekor:', error);
+                return;
+            }
+
+            familyTrees = data || [];
+            renderFamilyTrees();
+        }
+
+        function renderFamilyTrees() {
+            const listContainer = document.getElementById('treeListContainer');
+            if (!listContainer) return;
+
+            if (familyTrees.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-2 px-1 text-stone-400 text-[10px] italic">
+                        Még nincsenek családfáid.
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            familyTrees.forEach(tree => {
+                const isActive = activeFamilyTree && activeFamilyTree.id === tree.id;
+                const activeClass = isActive ? 'border-peach-500 bg-peach-500/15 font-bold' : 'border-peach-200/50 dark:border-stone-800 bg-white/50 dark:bg-stone-900/50';
+                
+                html += `
+                    <div class="group flex items-center justify-between px-3 py-2 rounded-xl border ${activeClass} hover:border-peach-400 transition-all shadow-sm">
+                        <span onclick="openFamilyTree('${tree.id}')" class="text-[11px] text-stone-800 dark:text-stone-100 font-cinzel truncate cursor-pointer flex-1" title="${escapeHtml(tree.name)}">${escapeHtml(tree.name)}</span>
+                        <button onclick="deleteFamilyTree('${tree.id}')" class="text-stone-400 hover:text-rose-600 transition-all p-1 opacity-70 group-hover:opacity-100" title="Törlés">
+                            <i class="fa-solid fa-trash-can text-[10px]"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        }
+
+        function openNewFamilyModal() {
+            document.getElementById('newFamilyNameInput').value = '';
+            document.getElementById('newFamilyModal').classList.remove('hidden');
+        }
+
+        function closeNewFamilyModal() {
+            document.getElementById('newFamilyModal').classList.add('hidden');
+        }
+
+        async function handleCreateFamilyTree(e) {
+            e.preventDefault();
+            if (!currentUser || !supabaseClient) return;
+
+            const name = document.getElementById('newFamilyNameInput').value.trim();
+            if (!name) return;
+
+            const { data, error } = await supabaseClient
+                .from('family_trees')
+                .insert([
+                    { user_id: currentUser.id, name: name }
+                ])
+                .select();
+
+            if (error) {
+                alert('Hiba a családfa mentésekor: ' + error.message);
+                return;
+            }
+
+            closeNewFamilyModal();
+            fetchFamilyTrees();
+        }
+
+        async function deleteFamilyTree(id) {
+            if (!confirm('Biztosan törölni szeretnéd ezt a családfát?')) return;
+
+            const { error } = await supabaseClient
+                .from('family_trees')
+                .delete()
+                .eq('id', id)
+                .eq('user_id', currentUser.id);
+
+            if (error) {
+                alert('Hiba a törlés során: ' + error.message);
+                return;
+            }
+
+            localStorage.removeItem(`s4memo_bg_${id}`);
+            localStorage.removeItem(`s4memo_bgconf_${id}`);
+
+            if (activeFamilyTree && activeFamilyTree.id === id) {
+                activeFamilyTree = null;
+                familySims = [];
+                document.getElementById('activeTreePlaceholder').classList.remove('hidden');
+                document.getElementById('createSimFloatingBtnContainer').classList.add('hidden');
+                document.getElementById('treeCustomizationWrapper').classList.add('hidden');
+                resetBgConfig();
+                applyTreeBackground();
+                renderSimsCanvas();
+            }
+
+            fetchFamilyTrees();
+        }
+
+        async function openFamilyTree(id) {
+            const tree = familyTrees.find(t => t.id === id);
+            if (tree) {
+                activeFamilyTree = tree;
+                document.getElementById('activeTreePlaceholder').classList.add('hidden');
+                document.getElementById('createSimFloatingBtnContainer').classList.remove('hidden');
+                document.getElementById('treeCustomizationWrapper').classList.remove('hidden');
+                
+                resetZoom();
+
+                let savedConfig = null;
+                try {
+                    const localConf = localStorage.getItem(`s4memo_bgconf_${tree.id}`);
+                    if (localConf) {
+                        savedConfig = JSON.parse(localConf);
+                    }
+                } catch(e) {}
+
+                if (tree.background_config) {
+                    currentBgConfig = tree.background_config;
+                } else if (savedConfig) {
+                    currentBgConfig = savedConfig;
+                } else {
+                    const oldBg = tree.background || localStorage.getItem(`s4memo_bg_${tree.id}`);
+                    currentBgConfig = {
+                        value: oldBg || '',
+                        size: 'cover',
+                        blur: 0
+                    };
+                }
+
+                applyTreeBackground();
+                syncCustomizationUI();
+                renderFamilyTrees();
+                await fetchSimsForActiveTree();
+            }
+        }
+
+        async function fetchSimsForActiveTree() {
+            if (!activeFamilyTree || !supabaseClient) return;
+
+            const { data, error } = await supabaseClient
+                .from('sims')
+                .select('*')
+                .eq('family_tree_id', activeFamilyTree.id);
+
+            if (error) {
+                console.error("Hiba a simek betöltésekor:", error);
+                familySims = [];
+            } else {
+                familySims = data || [];
+            }
+            renderSimsCanvas();
+            populateParentSelects();
+        }
+
+        function populateParentSelects() {
+            const motherSelect = document.getElementById('simMotherSelect');
+            const fatherSelect = document.getElementById('simFatherSelect');
+            if (!motherSelect || !fatherSelect) return;
+
+            let optionsHtml = '<option value="">Nincs megadva</option>';
+            familySims.forEach(sim => {
+                if (editingSimId && sim.id === editingSimId) return;
+                optionsHtml += `<option value="${sim.id}">${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}</option>`;
+            });
+
+            motherSelect.innerHTML = optionsHtml;
+            fatherSelect.innerHTML = optionsHtml;
+        }
+
+        function renderSimsCanvas() {
+            const canvas = document.getElementById('simsCanvasArea');
+            if (!canvas) return;
+
+            if (!activeFamilyTree || familySims.length === 0) {
+                canvas.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            familySims.forEach((sim, index) => {
+                const posX = sim.pos_x !== null && sim.pos_x !== undefined ? sim.pos_x : (100 + (index % 4) * 180);
+                const posY = sim.pos_y !== null && sim.pos_y !== undefined ? sim.pos_y : (120 + Math.floor(index / 4) * 220);
+                const isDead = sim.status === 'dead';
+                const simFrame = sim.frame_color || 'border-peach-500';
+                const statusBorder = isDead ? 'border-stone-500 opacity-80' : simFrame;
+                const statusBadge = isDead ? '<span class="px-2 py-0.5 rounded-full bg-stone-900/80 text-stone-300 text-[9px] font-bold backdrop-blur-xs shadow"><i class="fa-solid fa-ghost"></i> Halott</span>' : `<span class="px-2 py-0.5 rounded-full bg-peach-500/90 text-white text-[9px] font-bold backdrop-blur-xs shadow">${escapeHtml(sim.age || 'Fiatal felnőtt')}</span>`;
+
+                html += `
+                    <div id="sim-card-${sim.id}" 
+                         class="absolute pointer-events-auto flex flex-col items-center gap-1.5 w-32 cursor-grab active:cursor-grabbing select-none transition-transform hover:scale-105 group"
+                         style="left: ${posX}px; top: ${posY}px;"
+                         onmousedown="startSimDrag(event, '${sim.id}')"
+                         ontouchstart="startSimDrag(event, '${sim.id}')"
+                         oncontextmenu="openSimContextMenu(event, '${sim.id}')"
+                         title="Fogd meg a mozgatáshoz: ${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)} (Jobb klikk a menühöz)">
+                        <div class="w-20 h-20 rounded-full overflow-hidden border-4 ${statusBorder} shadow-xl relative bg-stone-900 pointer-events-none">
+                            <img src="${sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="text-center truncate w-full pointer-events-none drop-shadow-md">
+                            <h4 class="text-xs font-bold font-cinzel text-stone-900 dark:text-stone-100 truncate bg-white/70 dark:bg-stone-900/70 px-2 py-0.5 rounded-full backdrop-blur-xs border border-peach-200/40 dark:border-stone-700/50">${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}</h4>
+                        </div>
+                        <div class="pointer-events-none">${statusBadge}</div>
+                    </div>
+                `;
+            });
+
+            canvas.innerHTML = html;
+        }
+
+        // --- KONTEXTUS MENÜ KEZELÉS ---
+        function openSimContextMenu(e, simId) {
+            e.preventDefault();
+            e.stopPropagation();
+            contextMenuSimId = simId;
+
+            const menu = document.getElementById('simContextMenu');
+            if (!menu) return;
+
+            menu.style.left = `${e.clientX}px`;
+            menu.style.top = `${e.clientY}px`;
+            menu.classList.remove('hidden');
+
+            const closeMenu = (ev) => {
+                if (!menu.contains(ev.target)) {
+                    menu.classList.add('hidden');
+                    window.removeEventListener('click', closeMenu);
+                }
+            };
+            setTimeout(() => {
+                window.addEventListener('click', closeMenu);
+            }, 10);
+        }
+
+        function handleContextMenuEdit() {
+            const menu = document.getElementById('simContextMenu');
+            if (menu) menu.classList.add('hidden');
+            if (contextMenuSimId) {
+                openEditSimModal(contextMenuSimId);
+            }
+        }
+
+        async function handleContextMenuDelete() {
+            const menu = document.getElementById('simContextMenu');
+            if (menu) menu.classList.add('hidden');
+            if (!contextMenuSimId) return;
+
+            if (!confirm('Biztosan törölni szeretnéd ezt a Simet?')) return;
+
+            if (supabaseClient && currentUser) {
+                const { error } = await supabaseClient
+                    .from('sims')
+                    .delete()
+                    .eq('id', contextMenuSimId);
+
+                if (error) {
+                    alert('Hiba a törlés során: ' + error.message);
+                    return;
+                }
+            }
+
+            familySims = familySims.filter(s => s.id !== contextMenuSimId);
+            renderSimsCanvas();
+            populateParentSelects();
+            contextMenuSimId = null;
+        }
+
+        // SIM DRAG & DROP LOGIKA (Zoom-kompatibilis)
+        function startSimDrag(e, simId) {
+            e.stopPropagation();
+            activeDraggedSimId = simId;
+
+            const card = document.getElementById(`sim-card-${simId}`);
+            if (!card) return;
+
+            card.style.zIndex = 50;
+            card.classList.remove('hover:scale-105');
+            card.classList.add('scale-105');
+
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            const rect = card.getBoundingClientRect();
+            simDragOffsetX = (clientX - rect.left) / currentZoom;
+            simDragOffsetY = (clientY - rect.top) / currentZoom;
+        }
+
+        function handleGlobalSimDragMove(e) {
+            if (!activeDraggedSimId) return;
+            e.preventDefault();
+
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            const canvas = document.getElementById('simsCanvasArea');
+            if (!canvas) return;
+            const canvasRect = canvas.getBoundingClientRect();
+
+            let newX = (clientX - canvasRect.left) / currentZoom - simDragOffsetX;
+            let newY = (clientY - canvasRect.top) / currentZoom - simDragOffsetY;
+
+            const card = document.getElementById(`sim-card-${activeDraggedSimId}`);
+            if (card) {
+                card.style.left = `${newX}px`;
+                card.style.top = `${newY}px`;
+            }
+        }
+
+        async function handleGlobalSimDragEnd(e) {
+            if (!activeDraggedSimId) return;
+
+            const simId = activeDraggedSimId;
+            const card = document.getElementById(`sim-card-${simId}`);
+            
+            if (card) {
+                card.style.zIndex = 10;
+                card.classList.remove('scale-105');
+                card.classList.add('hover:scale-105');
+
+                const currentLeft = parseFloat(card.style.left) || 0;
+                const currentTop = parseFloat(card.style.top) || 0;
+
+                const simObj = familySims.find(s => s.id === simId);
+                if (simObj) {
+                    simObj.pos_x = currentLeft;
+                    simObj.pos_y = currentTop;
+                }
+
+                if (supabaseClient && currentUser) {
+                    const { error } = await supabaseClient
+                        .from('sims')
+                        .update({ pos_x: currentLeft, pos_y: currentTop })
+                        .eq('id', simId);
+
+                    if (error) {
+                        console.error("Hiba a Sim pozíció mentésekor:", error.message);
+                    }
+                }
+            }
+
+            activeDraggedSimId = null;
+        }
+
+        function openCreateSimModal() {
+            editingSimId = null;
+            document.getElementById('simModalTitle').innerHTML = `
+                <div class="w-4 h-4 bg-peach-500 rotate-45 rounded-xs flex items-center justify-center">
+                    <div class="w-2 h-2 bg-white rotate-45 rounded-xs"></div>
+                </div>
+                Sim Létrehozása
+            `;
+            document.getElementById('simLastName').value = '';
+            document.getElementById('simFirstName').value = '';
+            document.getElementById('simAvatarPreview').src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
+            simGalleryImages = [];
+            renderSimGalleryUI();
+            setSimStatus('alive');
+            simSelectedAge = 'Fiatal felnőtt';
+            simSelectedFrame = 'border-peach-500 shadow-peach-500/50';
+            document.getElementById('simAvatarEffect').value = 'none';
+            applySimImageEffect('none');
+            document.getElementById('simMotherSelect').value = '';
+            document.getElementById('simFatherSelect').value = '';
+            populateParentSelects();
+            document.getElementById('createSimModal').classList.remove('hidden');
+        }
+
+        function openEditSimModal(simId) {
+            const sim = familySims.find(s => s.id === simId);
+            if (!sim) return;
+
+            editingSimId = simId;
+            document.getElementById('simModalTitle').innerHTML = `
+                <div class="w-4 h-4 bg-peach-500 rotate-45 rounded-xs flex items-center justify-center">
+                    <div class="w-2 h-2 bg-white rotate-45 rounded-xs"></div>
+                </div>
+                Sim Szerkesztése: ${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}
+            `;
+
+            document.getElementById('simLastName').value = sim.last_name || '';
+            document.getElementById('simFirstName').value = sim.first_name || '';
+            document.getElementById('simAvatarPreview').src = sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
+            
+            simGalleryImages = sim.gallery ? [...sim.gallery] : [];
+            renderSimGalleryUI();
+
+            setSimStatus(sim.status || 'alive');
+            simSelectedAge = sim.age || 'Fiatal felnőtt';
+            simSelectedFrame = sim.frame_color || 'border-peach-500 shadow-peach-500/50';
+            
+            const outerFrame = document.getElementById('simAvatarOuterFrame');
+            if (outerFrame) {
+                outerFrame.className = `w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 ${simSelectedFrame} overflow-hidden bg-stone-100 dark:bg-stone-800 shadow-lg relative transition-all duration-300`;
+            }
+
+            document.getElementById('simAvatarEffect').value = 'none';
+            applySimImageEffect('none');
+
+            populateParentSelects();
+            document.getElementById('simMotherSelect').value = sim.mother_id || '';
+            document.getElementById('simFatherSelect').value = sim.father_id || '';
+
+            document.getElementById('createSimModal').classList.remove('hidden');
+        }
+
+        function closeCreateSimModal() {
+            document.getElementById('createSimModal').classList.add('hidden');
+            editingSimId = null;
+        }
+
+        function setSimStatus(status) {
+            simStatusValue = status;
+            const aliveBtn = document.getElementById('statusAliveBtn');
+            const deadBtn = document.getElementById('statusDeadBtn');
+            if (status === 'alive') {
+                aliveBtn.className = "px-5 py-2 rounded-xl bg-peach-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2";
+                deadBtn.className = "px-5 py-2 rounded-xl text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center gap-2";
+            } else {
+                deadBtn.className = "px-5 py-2 rounded-xl bg-stone-700 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2";
+                aliveBtn.className = "px-5 py-2 rounded-xl text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center gap-2";
+            }
+        }
+
+        function applySimImageEffect(effect) {
+            const preview = document.getElementById('simAvatarPreview');
+            if (preview) {
+                preview.style.filter = effect === 'none' ? '' : effect;
+            }
+        }
+
+        async function handleCreateSimSubmit(e) {
+            e.preventDefault();
+            if (!activeFamilyTree || !supabaseClient || !currentUser) return;
+
+            const lastName = document.getElementById('simLastName').value.trim();
+            const firstName = document.getElementById('simFirstName').value.trim();
+            const avatarUrl = document.getElementById('simAvatarPreview').src;
+            const motherId = document.getElementById('simMotherSelect').value || null;
+            const fatherId = document.getElementById('simFatherSelect').value || null;
+
+            if (editingSimId) {
+                const { error } = await supabaseClient
+                    .from('sims')
+                    .update({
+                        last_name: lastName,
+                        first_name: firstName,
+                        avatar_url: avatarUrl,
+                        status: simStatusValue,
+                        age: simSelectedAge,
+                        frame_color: simSelectedFrame,
+                        gallery: simGalleryImages,
+                        mother_id: motherId,
+                        father_id: fatherId
+                    })
+                    .eq('id', editingSimId);
+
+                if (error) {
+                    alert('Hiba a Sim frissítésekor: ' + error.message);
+                    return;
+                }
+            } else {
+                const defaultX = 150 + (familySims.length % 5) * 160;
+                const defaultY = 150 + Math.floor(familySims.length / 5) * 200;
+
+                const { error } = await supabaseClient
+                    .from('sims')
+                    .insert([{
+                        family_tree_id: activeFamilyTree.id,
+                        last_name: lastName,
+                        first_name: firstName,
+                        avatar_url: avatarUrl,
+                        status: simStatusValue,
+                        age: simSelectedAge,
+                        frame_color: simSelectedFrame,
+                        gallery: simGalleryImages,
+                        mother_id: motherId,
+                        father_id: fatherId,
+                        pos_x: defaultX,
+                        pos_y: defaultY
+                    }]);
+
+                if (error) {
+                    alert('Hiba a Sim létrehozásakor: ' + error.message);
+                    return;
+                }
+            }
+
+            closeCreateSimModal();
+            await fetchSimsForActiveTree();
+        }
+
+        // HÁTTÉR TESTRESZABÁS LOGIKA
+        function handlePresetBackgroundChange(val) {
+            if (!val) return;
+            currentBgConfig.value = val;
+            applyTreeBackground();
+            saveBackgroundConfig();
+        }
+
+        function handleLocalImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                currentBgConfig.value = `url('${evt.target.result}')`;
+                applyTreeBackground();
+                saveBackgroundConfig();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleBgSizeChange(val) {
+            currentBgConfig.size = val;
+            applyTreeBackground();
+            saveBackgroundConfig();
+        }
+
+        function handleBgBlurChange(val) {
+            currentBgConfig.blur = parseInt(val);
+            document.getElementById('blurValueLabel').textContent = `${val} px`;
+            applyTreeBackground();
+            saveBackgroundConfig();
+        }
+
+        function clearTreeBackground() {
+            currentBgConfig = { value: '', size: 'cover', blur: 0 };
+            document.getElementById('presetBackgroundSelect').value = '';
+            document.getElementById('bgSizeSelect').value = 'cover';
+            document.getElementById('bgBlurRange').value = 0;
+            document.getElementById('blurValueLabel').textContent = '0 px';
+            applyTreeBackground();
+            saveBackgroundConfig();
+        }
+
+        function applyTreeBackground() {
+            const container = document.getElementById('treeBackgroundContainer');
+            if (!container) return;
+
+            let bgVal = currentBgConfig.value;
+            if (!bgVal) {
+                const isDark = document.body.classList.contains('dark-mode');
+                bgVal = isDark ? 'linear-gradient(135deg, #1f1715 0%, #2b1d1a 50%, #171110 100%)' : 'linear-gradient(135deg, #fdf8f5 0%, #fbece4 50%, #f4e3dc 100%)';
+            }
+
+            container.style.background = bgVal;
+            if (bgVal.startsWith('url(')) {
+                container.style.backgroundSize = currentBgConfig.size;
+                container.style.backgroundRepeat = currentBgConfig.size === 'repeat' ? 'repeat' : 'no-repeat';
+                container.style.backgroundPosition = 'center center';
+            } else {
+                container.style.backgroundSize = 'cover';
+                container.style.backgroundRepeat = 'no-repeat';
+                container.style.backgroundPosition = 'center center';
+            }
+
+            container.style.filter = currentBgConfig.blur > 0 ? `blur(${currentBgConfig.blur}px)` : 'none';
+        }
+
+        function syncCustomizationUI() {
+            document.getElementById('bgSizeSelect').value = currentBgConfig.size || 'cover';
+            document.getElementById('bgBlurRange').value = currentBgConfig.blur || 0;
+            document.getElementById('blurValueLabel').textContent = `${currentBgConfig.blur || 0} px`;
+            if (currentBgConfig.value && !currentBgConfig.value.startsWith('url(')) {
+                document.getElementById('presetBackgroundSelect').value = currentBgConfig.value;
+            } else {
+                document.getElementById('presetBackgroundSelect').value = '';
+            }
+        }
+
+        async function saveBackgroundConfig() {
+            if (!activeFamilyTree || !supabaseClient || !currentUser) return;
+
+            try {
+                localStorage.setItem(`s4memo_bgconf_${activeFamilyTree.id}`, JSON.stringify(currentBgConfig));
+                await supabaseClient
+                    .from('family_trees')
+                    .update({ background_config: currentBgConfig })
+                    .eq('id', activeFamilyTree.id);
+            } catch (e) {
+                console.error("Hiba a háttér mentésekor:", e);
+            }
+        }
+
+        function resetBgConfig() {
+            currentBgConfig = { value: '', size: 'cover', blur: 0 };
+        }
+
+        // SIM GALLÉRIA ÉS AVATAR CROBBER MÜVELETEK
+        function handleSimAvatarUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const img = new Image();
+                img.onload = function() {
+                    simImageTransform.naturalWidth = img.naturalWidth;
+                    simImageTransform.naturalHeight = img.naturalHeight;
+                    simImageTransform.scale = 1;
+                    simImageTransform.x = 0;
+                    simImageTransform.y = 0;
+
+                    const cropperImg = document.getElementById('cropperImage');
+                    cropperImg.src = evt.target.result;
+                    cropperImg.style.width = `${img.naturalWidth}px`;
+                    cropperImg.style.height = `${img.naturalHeight}px`;
+                    updateCropperTransform();
+
+                    document.getElementById('imageCropperModal').classList.remove('hidden');
+                };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function openImageCropperModal() {
+            const currentSrc = document.getElementById('simAvatarPreview').src;
+            const img = new Image();
+            img.onload = function() {
+                simImageTransform.naturalWidth = img.naturalWidth;
+                simImageTransform.naturalHeight = img.naturalHeight;
+                simImageTransform.scale = 1;
+                simImageTransform.x = 0;
+                simImageTransform.y = 0;
+
+                const cropperImg = document.getElementById('cropperImage');
+                cropperImg.src = currentSrc;
+                cropperImg.style.width = `${img.naturalWidth}px`;
+                cropperImg.style.height = `${img.naturalHeight}px`;
+                updateCropperTransform();
+
+                document.getElementById('imageCropperModal').classList.remove('hidden');
+            };
+            img.src = currentSrc;
+        }
+
+        function closeImageCropperModal() {
+            document.getElementById('imageCropperModal').classList.add('hidden');
+        }
+
+        function updateCropperTransform() {
+            const img = document.getElementById('cropperImage');
+            if (img) {
+                img.style.transform = `translate(${simImageTransform.x}px, ${simImageTransform.y}px) scale(${simImageTransform.scale})`;
+            }
+        }
+
+        function handleCropperWheel(e) {
+            e.preventDefault();
+            const zoomStep = 0.1;
+            if (e.deltaY < 0) {
+                simImageTransform.scale = Math.min(simImageTransform.scale + zoomStep, 4);
+            } else {
+                simImageTransform.scale = Math.max(simImageTransform.scale - zoomStep, 0.2);
+            }
+            updateCropperTransform();
+        }
+
+        function startCropperDrag(e) {
+            isDraggingCropper = true;
+            dragStartX = (e.touches ? e.touches[0].clientX : e.clientX) - simImageTransform.x;
+            dragStartY = (e.touches ? e.touches[0].clientY : e.clientY) - simImageTransform.y;
+        }
+
+        function duringCropperDrag(e) {
+            if (!isDraggingCropper) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            simImageTransform.x = clientX - dragStartX;
+            simImageTransform.y = clientY - dragStartY;
+            updateCropperTransform();
+        }
+
+        function endCropperDrag() {
+            isDraggingCropper = false;
+        }
+
+        function startCropperTouch(e) {
+            if (e.touches.length === 1) {
+                startCropperDrag(e);
+            }
+        }
+
+        function duringCropperTouch(e) {
+            if (e.touches.length === 1) {
+                duringCropperDrag(e);
+            }
+        }
+
+        function saveCroppedImage() {
+            const viewport = document.getElementById('cropperViewport');
+            const cropperImg = document.getElementById('cropperImage');
+            if (!viewport || !cropperImg) return;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 300;
+            canvas.height = 300;
+            const ctx = canvas.getContext('2d');
+
+            const vRect = viewport.getBoundingClientRect();
+            const imgRect = cropperImg.getBoundingClientRect();
+
+            const renderScale = cropperImg.naturalWidth / imgRect.width;
+            const offsetX = (vRect.left - imgRect.left) * renderScale;
+            const offsetY = (vRect.top - imgRect.top) * renderScale;
+
+            ctx.drawImage(
+                cropperImg,
+                offsetX, offsetY,
+                vRect.width * renderScale, vRect.height * renderScale,
+                0, 0,
+                300, 300
+            );
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            document.getElementById('simAvatarPreview').src = dataUrl;
+            closeImageCropperModal();
+        }
+
+        function handleSimGalleryUpload(e) {
+            const files = e.target.files;
+            if (!files || files.length === 0) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    simGalleryImages.push(evt.target.result);
+                    renderSimGalleryUI();
+                };
+                reader.readAsDataURL(files[i]);
+            }
+        }
+
+        function renderSimGalleryUI() {
+            const container = document.getElementById('simGalleryContainer');
+            if (!container) return;
+
+            let html = `
+                <button type="button" onclick="document.getElementById('simGalleryFileInput').click()" class="flex-shrink-0 w-24 h-24 rounded-2xl border-2 border-dashed border-peach-400 bg-peach-500/10 hover:bg-peach-500/20 text-peach-600 dark:text-peach-400 flex flex-col items-center justify-center gap-1 transition shadow-sm sticky left-0 z-10 backdrop-blur-xs" title="Kép hozzáadása a Sim életéről">
+                    <i class="fa-solid fa-plus text-xl"></i>
+                    <span class="text-[10px] font-bold">Hozzáadás</span>
+                </button>
+            `;
+
+            simGalleryImages.forEach((imgUrl, index) => {
+                html += `
+                    <div class="relative flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 border-peach-300 shadow-md group">
+                        <img src="${imgUrl}" class="w-full h-full object-cover cursor-pointer" onclick="openGalleryLightbox(${index})">
+                        <button type="button" onclick="removeSimGalleryImage(${index})" class="absolute top-1 right-1 bg-rose-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition shadow">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function removeSimGalleryImage(index) {
+            simGalleryImages.splice(index, 1);
+            renderSimGalleryUI();
+        }
+
+        function openGalleryLightbox(index) {
+            if (simGalleryImages.length === 0) return;
+            currentLightboxIndex = index;
+            document.getElementById('lightboxImage').src = simGalleryImages[currentLightboxIndex];
+            document.getElementById('lightboxCounter').textContent = `${currentLightboxIndex + 1} / ${simGalleryImages.length}`;
+            document.getElementById('galleryLightboxModal').classList.remove('hidden');
+        }
+
+        function closeGalleryLightbox() {
+            document.getElementById('galleryLightboxModal').classList.add('hidden');
+        }
+
+        function prevGalleryImage() {
+            if (simGalleryImages.length === 0) return;
+            currentLightboxIndex = (currentLightboxIndex - 1 + simGalleryImages.length) % simGalleryImages.length;
+            document.getElementById('lightboxImage').src = simGalleryImages[currentLightboxIndex];
+            document.getElementById('lightboxCounter').textContent = `${currentLightboxIndex + 1} / ${simGalleryImages.length}`;
+        }
+
+        function nextGalleryImage() {
+            if (simGalleryImages.length === 0) return;
+            currentLightboxIndex = (currentLightboxIndex + 1) % simGalleryImages.length;
+            document.getElementById('lightboxImage').src = simGalleryImages[currentLightboxIndex];
+            document.getElementById('lightboxCounter').textContent = `${currentLightboxIndex + 1} / ${simGalleryImages.length}`;
+        }
+
+        function switchSimModalTab(tab) {
+            const btnK = document.getElementById('simTabBtnKarakter');
+            const btnN = document.getElementById('simTabBtnNaplo');
+            const conK = document.getElementById('simTabContentKarakter');
+            const conN = document.getElementById('simTabContentNaplo');
+
+            if (tab === 'karakter') {
+                btnK.className = "flex-1 py-2.5 rounded-xl bg-peach-500 text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 font-cinzel";
+                btnN.className = "flex-1 py-2.5 rounded-xl text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 font-cinzel";
+                conK.classList.remove('hidden');
+                conN.classList.add('hidden');
+            } else {
+                btnN.className = "flex-1 py-2.5 rounded-xl bg-peach-500 text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 font-cinzel";
+                btnK.className = "flex-1 py-2.5 rounded-xl text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 font-cinzel";
+                conN.classList.remove('hidden');
+                conK.classList.add('hidden');
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
