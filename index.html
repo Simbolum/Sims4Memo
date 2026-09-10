@@ -720,21 +720,7 @@
                 </div>
             </form>
             
-        <div id="simContextMenu" class="fixed z-[100] hidden glass-panel w-48 py-2 rounded-2xl shadow-2xl border border-peach-300 dark:border-stone-700 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md">
-    <button onclick="contextMenuAction('edit')" class="w-full text-left px-4 py-2 text-xs font-semibold text-stone-800 dark:text-stone-200 hover:bg-peach-500 hover:text-white transition flex items-center gap-2.5">
-        <i class="fa-solid fa-pen-to-square text-peach-500 group-hover:text-white"></i> Sim szerkesztése
-    </button>
-    <button onclick="contextMenuAction('children')" class="w-full text-left px-4 py-2 text-xs font-semibold text-stone-800 dark:text-stone-200 hover:bg-peach-500 hover:text-white transition flex items-center gap-2.5">
-        <i class="fa-solid fa-child text-peach-500"></i> Gyerek hozzáadása
-    </button>
-    <button onclick="contextMenuAction('partner')" class="w-full text-left px-4 py-2 text-xs font-semibold text-stone-800 dark:text-stone-200 hover:bg-peach-500 hover:text-white transition flex items-center gap-2.5">
-        <i class="fa-solid fa-heart text-peach-500"></i> Partner / Házastárs
-    </button>
-    <div class="my-1 border-t border-peach-200/50 dark:border-stone-800"></div>
-    <button onclick="contextMenuAction('delete')" class="w-full text-left px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-600 hover:text-white transition flex items-center gap-2.5">
-        <i class="fa-solid fa-trash-can"></i> Sim törlése
-    </button>
-</div>
+
     </div>
         
     <!-- JavaScript Logika -->
@@ -839,104 +825,9 @@
             }
         }
 
-        function openSimContextMenu(e, simId) {
-    e.preventDefault(); // Megakadályozza az alapértelmezett böngészős jobb klikk menüt
-    e.stopPropagation(); // Megakadályozza az esemény tovább terjedését
-    contextMenuTargetSimId = simId;
 
-    const menu = document.getElementById('simContextMenu');
-    if (!menu) return;
 
-    // Pozicionálás a egérmutató helyére, hogy ne menjen ki a képernyőről
-    const x = Math.min(e.clientX, window.innerWidth - 200);
-    const y = Math.min(e.clientY, window.innerHeight - 200);
-    
-    menu.style.left = `${x}px`;
-    menu.style.top = `${y}px`;
-    menu.style.position = 'fixed';
-    menu.classList.remove('hidden');
-}
 
-// Bárhová máshová kattintva eltűntetjük a menüt
-document.addEventListener('click', (e) => {
-    const menu = document.getElementById('simContextMenu');
-    if (menu && !menu.contains(e.target)) {
-        menu.classList.add('hidden');
-    }
-});
-
-// ESC billentyűre is bezárjuk a menüt
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        const menu = document.getElementById('simContextMenu');
-        if (menu) {
-            menu.classList.add('hidden');
-        }
-    }
-});
-        let editingSimId = null; // Jelöli, hogy épp szerkesztünk-e Simet
-let contextMenuTargetSimId = null;
-        
-        function contextMenuAction(action) {
-    const menu = document.getElementById('simContextMenu');
-    if (menu) menu.classList.add('hidden');
-
-    if (!contextMenuTargetSimId) {
-        console.error('Nincs kiválasztott Sim a menühöz');
-        return;
-    }
-    
-    const sim = familySims.find(s => s.id === contextMenuTargetSimId);
-    if (!sim) {
-        console.error('Sim nem található:', contextMenuTargetSimId);
-        return;
-    }
-
-    console.log('Menü művelet:', action, 'Sim:', sim.last_name, sim.first_name);
-
-    if (action === 'edit') {
-        openEditSimModal(contextMenuTargetSimId);
-    } 
-    else if (action === 'children') {
-        alert(`Gyerek hozzáadása ehhez: ${sim.last_name} ${sim.first_name}`);
-    } 
-    else if (action === 'partner') {
-        alert(`Partner összekötése ezzel: ${sim.last_name} ${sim.first_name}`);
-    } 
-    else if (action === 'delete') {
-        deleteSim(contextMenuTargetSimId);
-    }
-}
-
-        function openEditSimModal(simId) {
-    const sim = familySims.find(s => s.id === simId);
-    if (!sim) return;
-
-    editingSimId = sim.id;
-    document.getElementById('simModalTitle').textContent = "Sim Szerkesztése";
-    document.getElementById('simLastName').value = sim.last_name || '';
-    document.getElementById('simFirstName').value = sim.first_name || '';
-    const avatarPreview = document.getElementById('simAvatarPreview');
-    avatarPreview.src = sim.avatar_url || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22128%22 height=%22128%22 viewBox=%220 0 128 128%22%3E%3Ccircle cx=%2264%22 cy=%2264%22 r=%2264%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%224%22/%3E%3C/svg%3E';
-    avatarPreview.onerror = function() {
-        this.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22128%22 height=%22128%22 viewBox=%220 0 128 128%22%3E%3Ccircle cx=%2264%22 cy=%2264%22 r=%2264%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%224%22/%3E%3C/svg%3E';
-    };
-
-    simGalleryImages = Array.isArray(sim.gallery) 
-    ? sim.gallery.filter(img => typeof img === 'string' && img.trim() !== '' && !['null', 'undefined'].includes(img.trim().toLowerCase()) && (img.startsWith('data:image') || img.startsWith('http')))
-    : [];
-    renderSimGalleryUI();
-
-    setSimStatus(sim.status || 'alive');
-    simSelectedAge = sim.age || 'Fiatal felnőtt';
-    simSelectedFrame = sim.frame_color || 'border-peach-500 shadow-peach-500/50';
-    
-    populateParentSelects();
-    document.getElementById('simMotherSelect').value = sim.mother_id || '';
-    document.getElementById('simFatherSelect').value = sim.father_id || '';
-
-    document.getElementById('createSimModal').classList.remove('hidden');
-}
         
         function toggleFamilyDropdown() {
             const dropdown = document.getElementById('familyDropdownContent');
@@ -1391,9 +1282,7 @@ let contextMenuTargetSimId = null;
          style="left: ${posX}px; top: ${posY}px;"
          onmousedown="startSimDrag(event, '${sim.id}')"
          ontouchstart="startSimDrag(event, '${sim.id}')"
-         oncontextmenu="openSimContextMenu(event, '${sim.id}')"
-         title="Fogd meg a mozgatáshoz: ${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}"
-         onclick="if(event.button === 2) openSimContextMenu(event, '${sim.id}')">
+         title="Fogd meg a mozgatáshoz: ${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}">
                         <div class="w-20 h-20 rounded-full overflow-hidden border-4 ${statusBorder} shadow-xl relative bg-stone-900 pointer-events-none">
                             <img src="${sim.avatar_url || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%223%22/%3E%3C/svg%3E'}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%223%22/%3E%3C/svg%3E';">
                         </div>
@@ -1513,60 +1402,44 @@ let contextMenuTargetSimId = null;
         father_id: fatherId
     };
 
-    if (editingSimId) {
-        // Meglévő Sim frissítése
-        const { error } = await supabaseClient
-            .from('sims')
-            .update(simData)
-            .eq('id', editingSimId);
+    // Új Sim beszúrása
+    simData.pos_x = 100 + (familySims.length * 40) % 600;
+    simData.pos_y = 120 + (familySims.length * 30) % 400;
 
-        if (error) {
-            alert("Hiba a Sim frissítésekor: " + error.message);
-            return;
-        }
-        
-        closeCreateSimModal();
-        await fetchSimsForActiveTree();
-    } else {
-        // Új Sim beszúrása
-        simData.pos_x = 100 + (familySims.length * 40) % 600;
-        simData.pos_y = 120 + (familySims.length * 30) % 400;
+    // Itt mentjük el, és elKÉRJÜK a visszatérő adatot (.select().single()), hogy megkapjuk az ID-ját
+    console.log("Küldött simData:", simData);
+    const { data: createdSims, error } = await supabaseClient
+        .from('sims')
+        .insert([simData])
+        .select();
 
-        // Itt mentjük el, és elKÉRJÜK a visszatérő adatot (.select().single()), hogy megkapjuk az ID-ját
-        console.log("Küldött simData:", simData);
-        const { data: createdSims, error } = await supabaseClient
-            .from('sims')
-            .insert([simData])
-            .select();
+    if (error) {
+        alert("Hiba a Sim mentésekor: " + error.message);
+        return;
+    }
 
-        if (error) {
-            alert("Hiba a Sim mentésekor: " + error.message);
-            return;
-        }
+    const createdSim = createdSims ? createdSims[0] : null;
 
-        const createdSim = createdSims ? createdSims[0] : null;
-
-        // Ha van megadva szülő, frissítjük a szülők children listáját is
-        if (createdSim && (motherId || fatherId)) {
-            const parentsToUpdate = [motherId, fatherId].filter(id => id !== null);
-            for (let pId of parentsToUpdate) {
-                const parentSim = familySims.find(s => s.id === pId);
-                if (parentSim) {
-                    let childrenList = parentSim.children || [];
-                    if (!childrenList.includes(createdSim.id)) {
-                        childrenList.push(createdSim.id);
-                        await supabaseClient
-                            .from('sims')
-                            .update({ children: childrenList })
-                            .eq('id', pId);
-                    }
+    // Ha van megadva szülő, frissítjük a szülők children listáját is
+    if (createdSim && (motherId || fatherId)) {
+        const parentsToUpdate = [motherId, fatherId].filter(id => id !== null);
+        for (let pId of parentsToUpdate) {
+            const parentSim = familySims.find(s => s.id === pId);
+            if (parentSim) {
+                let childrenList = parentSim.children || [];
+                if (!childrenList.includes(createdSim.id)) {
+                    childrenList.push(createdSim.id);
+                    await supabaseClient
+                        .from('sims')
+                        .update({ children: childrenList })
+                        .eq('id', pId);
                 }
             }
         }
-
-        closeCreateSimModal();
-        await fetchSimsForActiveTree();
     }
+
+    closeCreateSimModal();
+    await fetchSimsForActiveTree();
 }
 
         function handleSimGalleryUpload(event) {
@@ -1880,8 +1753,6 @@ let contextMenuTargetSimId = null;
         function openCreateSimModal() {
     if (!activeFamilyTree) return;
 
-    // Itt jelöljük, hogy most újat hozunk létre (nincs szerkesztett ID)
-    editingSimId = null;
     const modalTitle = document.getElementById('simModalTitle');
     if (modalTitle) modalTitle.textContent = "Sim Létrehozása";
 
