@@ -1578,7 +1578,10 @@ let contextMenuTargetSimId = null;
     simGalleryImages.forEach((imgUrl, index) => {
         html += `
             <div class="flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 border-peach-300 relative group shadow-sm bg-stone-900 cursor-pointer" onclick="openGalleryLightbox(${index})">
-                <img src="${imgUrl}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                <img src="${imgUrl}" 
+                     class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                     onerror="this.src='https://via.placeholder.com/96?text=Hiba'; this.parentElement.classList.add('border-rose-500');"
+                     alt="Galléria kép ${index + 1}">
                 <button type="button" onclick="event.stopPropagation(); removeSimGalleryImage(${index})" class="absolute top-1 right-1 bg-stone-950/70 hover:bg-rose-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition shadow" title="Kép törlése">
                     <i class="fa-solid fa-trash-can text-[10px]"></i>
                 </button>
@@ -1622,6 +1625,9 @@ let contextMenuTargetSimId = null;
             const counterEl = document.getElementById('lightboxCounter');
             if (simGalleryImages[currentLightboxIndex]) {
                 imgEl.src = simGalleryImages[currentLightboxIndex];
+                imgEl.onerror = function() {
+                    this.src = 'https://via.placeholder.com/800x600?text=Kép+betöltési+hiba';
+                };
                 counterEl.textContent = `${currentLightboxIndex + 1} / ${simGalleryImages.length}`;
             }
         }
