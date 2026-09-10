@@ -1000,6 +1000,7 @@
 
         let currentUser = null;
         let isSignUpMode = false;
+        let userProfile = { name: '', avatar: '', bio: '' };
 
         const sidebar = document.getElementById('sidebar');
         const toggleBtn = document.getElementById('toggleBtn');
@@ -1759,7 +1760,7 @@
             try {
                 const defaultName = user.email.split('@')[0];
                 const { error } = await supabaseClient.from('profiles').insert([
-                    { id: user.id, display_name: defaultName, avatar_url: userProfile.avatar, bio: '' }
+                    { id: user.id, display_name: defaultName, avatar_url: '', bio: '' }
                 ]);
 
                 if (error) {
@@ -1767,6 +1768,9 @@
                     // Nem blokkoljuk a folyamatot, ha a profil létrehozása hibásan sikerül
                 } else {
                     console.log("Profil sikeresen létrehozva:", defaultName);
+                    userProfile.name = defaultName;
+                    userProfile.avatar = '';
+                    userProfile.bio = '';
                 }
             } catch (error) {
                 console.error("Váratlan hiba a profil létrehozásakor:", error);
@@ -1829,12 +1833,12 @@
 
                 if (data) {
                     userProfile.name = data.display_name || currentUser.email.split('@')[0];
-                    userProfile.avatar = data.avatar_url || userProfile.avatar;
+                    userProfile.avatar = data.avatar_url || '';
                     userProfile.bio = data.bio || '';
                 } else {
                     const defaultName = currentUser.email.split('@')[0];
                     const { error: insertError } = await supabaseClient.from('profiles').insert([
-                        { id: currentUser.id, display_name: defaultName, avatar_url: userProfile.avatar, bio: '' }
+                        { id: currentUser.id, display_name: defaultName, avatar_url: '', bio: '' }
                     ]);
 
                     if (insertError) {
@@ -1844,6 +1848,8 @@
                     }
 
                     userProfile.name = defaultName;
+                    userProfile.avatar = '';
+                    userProfile.bio = '';
                     console.log("Profil sikeresen létrehozva:", defaultName);
                 }
                 updateProfileButton();
@@ -1906,8 +1912,10 @@
                         name: tree.name,
                         background_config: tree.bgConfig,
                         sims: tree.sims,
-                        journal: tree.journal,
+                        journal: tree.journal || [],
                         updated_at: new Date()
+                    }, {
+                        onConflict: 'id'
                     });
 
                 if (error) {
