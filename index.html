@@ -1556,7 +1556,7 @@ let contextMenuTargetSimId = null;
         simGalleryImages = [];
     } else {
         // Kiszűrjük a hibás, túlméretes vagy nem string elemeket, hogy ne akassza ki a böngészőt
-        simGalleryImages = simGalleryImages.filter(item => typeof item === 'string' && item.length < 2_000_000);
+        simGalleryImages = simGalleryImages.filter(item => typeof item === 'string' && item.trim() !== '' && item.length < 2_000_000);
     }
 
     let html = `
