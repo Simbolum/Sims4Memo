@@ -1547,29 +1547,36 @@ let contextMenuTargetSimId = null;
         }
 
         function renderSimGalleryUI() {
-            const container = document.getElementById('simGalleryContainer');
-            if (!container) return;
+    const container = document.getElementById('simGalleryContainer');
+    if (!container) return;
 
-            let html = `
-                <button type="button" onclick="document.getElementById('simGalleryFileInput').click()" class="flex-shrink-0 w-24 h-24 rounded-2xl border-2 border-dashed border-peach-400 bg-peach-500/10 hover:bg-peach-500/20 text-peach-600 dark:text-peach-400 flex flex-col items-center justify-center gap-1 transition shadow-sm sticky left-0 z-10 backdrop-blur-xs" title="Kép hozzáadása a Sim életéről">
-                    <i class="fa-solid fa-plus text-xl"></i>
-                    <span class="text-[10px] font-bold">Hozzáadás</span>
+    if (!Array.isArray(simGalleryImages)) {
+        simGalleryImages = [];
+    }
+
+    let html = `
+        <button type="button" onclick="document.getElementById('simGalleryFileInput').click()" class="flex-shrink-0 w-24 h-24 rounded-2xl border-2 border-dashed border-peach-400 bg-peach-500/10 hover:bg-peach-500/20 text-peach-600 dark:text-peach-400 flex flex-col items-center justify-center gap-1 transition shadow-sm sticky left-0 z-10 backdrop-blur-xs" title="Kép hozzáadása a Sim életéről">
+            <i class="fa-solid fa-plus text-xl"></i>
+            <span class="text-[10px] font-bold">Hozzáadás</span>
+        </button>
+    `;
+
+    simGalleryImages.forEach((imgUrl, index) => {
+        // Biztosítjuk, hogy csak érvényes, ésszerű hosszúságú kép-link vagy Base64 jöhessen szóba
+        if (typeof imgUrl !== 'string' || imgUrl.length > 5_000_000) return;
+
+        html += `
+            <div class="flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 border-peach-300 relative group shadow-sm bg-stone-900 cursor-pointer" onclick="openGalleryLightbox(${index})">
+                <img src="${imgUrl}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                <button type="button" onclick="event.stopPropagation(); removeSimGalleryImage(${index})" class="absolute top-1 right-1 bg-stone-950/70 hover:bg-rose-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition shadow" title="Kép törlése">
+                    <i class="fa-solid fa-trash-can text-[10px]"></i>
                 </button>
-            `;
+            </div>
+        `;
+    });
 
-            simGalleryImages.forEach((imgUrl, index) => {
-                html += `
-                    <div class="flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 border-peach-300 relative group shadow-sm bg-stone-900 cursor-pointer" onclick="openGalleryLightbox(${index})">
-                        <img src="${imgUrl}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
-                        <button type="button" onclick="event.stopPropagation(); removeSimGalleryImage(${index})" class="absolute top-1 right-1 bg-stone-950/70 hover:bg-rose-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition shadow" title="Kép törlése">
-                            <i class="fa-solid fa-trash-can text-[10px]"></i>
-                        </button>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
+    container.innerHTML = html;
+}
 
         function removeSimGalleryImage(index) {
             simGalleryImages.splice(index, 1);
