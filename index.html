@@ -1486,46 +1486,49 @@ let contextMenuTargetSimId = null;
             alert("Hiba a Sim frissítésekor: " + error.message);
             return;
         }
+        
+        closeCreateSimModal();
+        await fetchSimsForActiveTree();
     } else {
-        // Új Sim beszúrása kezdő pozícióval
+        // Új Sim beszúrása
         simData.pos_x = 100 + (familySims.length * 40) % 600;
         simData.pos_y = 120 + (familySims.length * 30) % 400;
 
-        const { error } = await supabaseClient
+        // Itt mentjük el, és elKÉRJÜK a visszatérő adatot (.select().single()), hogy megkapjuk az ID-ját
+        const { data: createdSims, error } = await supabaseClient
             .from('sims')
-            .insert([simData]);
+            .insert([simData])
+            .select();
 
         if (error) {
             alert("Hiba a Sim mentésekor: " + error.message);
             return;
         }
-    }
 
-    closeCreateSimModal();
-    await fetchSimsForActiveTree();
-}
+        const createdSim = createdSims ? createdSims[0] : null;
 
-            // --- ÚJ: Kölcsönös szülő-gyerek frissítés a kiválasztott szülőknél is ---
-            if (createdSim && (motherId || fatherId)) {
-                const parentsToUpdate = [motherId, fatherId].filter(id => id !== null);
-                for (let pId of parentsToUpdate) {
-                    const parentSim = familySims.find(s => s.id === pId);
-                    if (parentSim) {
-                        let childrenList = parentSim.children || [];
-                        if (!childrenList.includes(createdSim.id)) {
-                            childrenList.push(createdSim.id);
-                            await supabaseClient
-                                .from('sims')
-                                .update({ children: childrenList })
-                                .eq('id', pId);
-                        }
+        // Ha van megadva szülő, frissítjük a szülők children listáját is
+        if (createdSim && (motherId || fatherId)) {
+            const parentsToUpdate = [motherId, fatherId].filter(id => id !== null);
+            for (let pId of parentsToUpdate) {
+                const parentSim = familySims.find(s => s.id === pId);
+                if (parentSim) {
+                    let childrenList = parentSim.children || [];
+                    if (!childrenList.includes(createdSim.id)) {
+                        childrenList.push(createdSim.id);
+                        await supabaseClient
+                            .from('sims')
+                            .update({ children: childrenList })
+                            .eq('id', pId);
                     }
                 }
             }
-
-            closeCreateSimModal();
-            await fetchSimsForActiveTree();
         }
+
+        closeCreateSimModal();
+        await fetchSimsForActiveTree();
+    }
+}
 
         function handleSimGalleryUpload(event) {
             const files = event.target.files;
