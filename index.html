@@ -888,7 +888,11 @@ let contextMenuTargetSimId = null;
     document.getElementById('simLastName').value = sim.last_name || '';
     document.getElementById('simFirstName').value = sim.first_name || '';
     document.getElementById('simAvatarPreview').src = sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
-    
+
+            console.log("--- SIM GALÉRIA DIAGNOSZTIKA ---");
+console.log("Mi a sim.gallery értéke?", sim.gallery);
+console.log("Milyen típusú adat?", typeof sim.gallery);
+console.log("Vajon tömb-e az Array.isArray szerint?", Array.isArray(sim.gallery));
     simGalleryImages = Array.isArray(sim.gallery) 
     ? [...sim.gallery] 
     : (typeof sim.gallery === 'string' && sim.gallery.trim() !== '' ? JSON.parse(sim.gallery) : []);
