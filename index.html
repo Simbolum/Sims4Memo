@@ -841,22 +841,37 @@
 
         function openSimContextMenu(e, simId) {
     e.preventDefault(); // Megakadályozza az alapértelmezett böngészős jobb klikk menüt
+    e.stopPropagation(); // Megakadályozza az esemény tovább terjedését
     contextMenuTargetSimId = simId;
 
     const menu = document.getElementById('simContextMenu');
     if (!menu) return;
 
-    // Pozicionálás a egérmutató helyére
-    menu.style.left = `${e.pageX}px`;
-    menu.style.top = `${e.pageY}px`;
+    // Pozicionálás a egérmutató helyére, hogy ne menjen ki a képernyőről
+    const x = Math.min(e.clientX, window.innerWidth - 200);
+    const y = Math.min(e.clientY, window.innerHeight - 200);
+    
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
+    menu.style.position = 'fixed';
     menu.classList.remove('hidden');
 }
 
 // Bárhová máshová kattintva eltűntetjük a menüt
-window.addEventListener('click', () => {
+document.addEventListener('click', (e) => {
     const menu = document.getElementById('simContextMenu');
-    if (menu) {
+    if (menu && !menu.contains(e.target)) {
         menu.classList.add('hidden');
+    }
+});
+
+// ESC billentyűre is bezárjuk a menüt
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const menu = document.getElementById('simContextMenu');
+        if (menu) {
+            menu.classList.add('hidden');
+        }
     }
 });
         let editingSimId = null; // Jelöli, hogy épp szerkesztünk-e Simet
@@ -866,8 +881,18 @@ let contextMenuTargetSimId = null;
     const menu = document.getElementById('simContextMenu');
     if (menu) menu.classList.add('hidden');
 
-    if (!contextMenuTargetSimId) return;
+    if (!contextMenuTargetSimId) {
+        console.error('Nincs kiválasztott Sim a menühöz');
+        return;
+    }
+    
     const sim = familySims.find(s => s.id === contextMenuTargetSimId);
+    if (!sim) {
+        console.error('Sim nem található:', contextMenuTargetSimId);
+        return;
+    }
+
+    console.log('Menü művelet:', action, 'Sim:', sim.last_name, sim.first_name);
 
     if (action === 'edit') {
         openEditSimModal(contextMenuTargetSimId);
@@ -1367,7 +1392,8 @@ let contextMenuTargetSimId = null;
          onmousedown="startSimDrag(event, '${sim.id}')"
          ontouchstart="startSimDrag(event, '${sim.id}')"
          oncontextmenu="openSimContextMenu(event, '${sim.id}')"
-         title="Fogd meg a mozgatáshoz: ${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}">
+         title="Fogd meg a mozgatáshoz: ${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}"
+         onclick="if(event.button === 2) openSimContextMenu(event, '${sim.id}')">
                         <div class="w-20 h-20 rounded-full overflow-hidden border-4 ${statusBorder} shadow-xl relative bg-stone-900 pointer-events-none">
                             <img src="${sim.avatar_url || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%223%22/%3E%3C/svg%3E'}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%223%22/%3E%3C/svg%3E';">
                         </div>
