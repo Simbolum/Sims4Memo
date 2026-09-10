@@ -226,7 +226,7 @@
 
                     <button onclick="openProfileModal()" class="flex items-center gap-2.5 px-3.5 py-2 rounded-full glass-panel hover:border-peach-400 transition-all shadow-sm">
                         <div class="relative">
-                            <img id="headerProfileImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Profil" class="w-6 h-6 rounded-full object-cover border-2 border-peach-500" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22%3E%3Crect width=%2224%22 height=%2224%22 fill=%22%231c1917%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2210%22 fill=%22%23978b6e%22%3E?%3C/text%3E%3C/svg%3E';">
+                            <img id="headerProfileImg" src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2212%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%222%22/%3E%3C/svg%3E" alt="Profil" class="w-6 h-6 rounded-full object-cover border-2 border-peach-500">
                         </div>
                         <span id="headerProfileName" class="text-xs font-bold hidden sm:inline">Profilom</span>
                         <i class="fa-solid fa-gear text-xs text-stone-500 ml-0.5"></i>
@@ -454,7 +454,7 @@
                         
                         <div class="relative group cursor-pointer" onclick="openImageCropperModal()" title="Kattints a kép nagyításához és beigazításához">
                             <div id="simAvatarOuterFrame" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-peach-500 overflow-hidden bg-stone-100 dark:bg-stone-800 shadow-lg relative transition-all duration-300">
-                                <img id="simAvatarPreview" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover" style="transition: filter 0.3s ease;">
+                                <img id="simAvatarPreview" src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22128%22 height=%22128%22 viewBox=%220 0 128 128%22%3E%3Ccircle cx=%2264%22 cy=%2264%22 r=%2264%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%224%22/%3E%3C/svg%3E" class="w-full h-full object-cover" style="transition: filter 0.3s ease;">
                                 
                                 <div class="absolute inset-0 bg-stone-900/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                                     <i class="fa-solid fa-crop text-white text-2xl mb-1"></i>
@@ -674,7 +674,7 @@
             <form id="profileForm" onsubmit="handleProfileSave(event)" class="space-y-4">
                 <div class="flex flex-col items-center justify-center mb-4">
                     <div id="avatarFramePreview" class="relative p-1 rounded-full border-2 border-peach-500 shadow-lg">
-                        <img id="modalAvatarPreview" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" class="w-20 h-20 rounded-full object-cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Crect width=%2280%22 height=%2280%22 fill=%22%231c1917%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2212%22 fill=%22%23978b6e%22%3E?%3C/text%3E%3C/svg%3E';">
+                        <img id="modalAvatarPreview" src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%223%22/%3E%3C/svg%3E" class="w-20 h-20 rounded-full object-cover">
                     </div>
                     <span class="text-[11px] text-stone-500 mt-2 font-medium">Válaszd ki a profilképed és kereted</span>
                 </div>
@@ -768,7 +768,7 @@
 
         let userProfile = {
             name: '',
-            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+            avatar: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2212%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%222%22/%3E%3C/svg%3E',
             frame: 'border-peach-500 shadow-peach-500/50',
             bio: ''
         };
@@ -892,9 +892,9 @@ let contextMenuTargetSimId = null;
     document.getElementById('simLastName').value = sim.last_name || '';
     document.getElementById('simFirstName').value = sim.first_name || '';
     const avatarPreview = document.getElementById('simAvatarPreview');
-    avatarPreview.src = sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
+    avatarPreview.src = sim.avatar_url || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22128%22 height=%22128%22 viewBox=%220 0 128 128%22%3E%3Ccircle cx=%2264%22 cy=%2264%22 r=%2264%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%224%22/%3E%3C/svg%3E';
     avatarPreview.onerror = function() {
-        this.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22128%22 height=%22128%22 viewBox=%220 0 128 128%22%3E%3Crect width=%22128%22 height=%22128%22 fill=%22%231c1917%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2214%22 fill=%22%23978b6e%22%3E?%3C/text%3E%3C/svg%3E';
+        this.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22128%22 height=%22128%22 viewBox=%220 0 128 128%22%3E%3Ccircle cx=%2264%22 cy=%2264%22 r=%2264%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%224%22/%3E%3C/svg%3E';
     };
 
     simGalleryImages = []; // Mindig üres galeria indul szerkesztéskor - csak felhasználó adhat hozzá
@@ -1092,7 +1092,7 @@ let contextMenuTargetSimId = null;
             if (!currentUser || !supabaseClient) return;
 
             userProfile.name = document.getElementById('profileNameInput').value;
-            userProfile.avatar = document.getElementById('profileAvatarInput').value || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80';
+            userProfile.avatar = document.getElementById('profileAvatarInput').value || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2212%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%222%22/%3E%3C/svg%3E';
             userProfile.frame = document.getElementById('profileFrameSelect').value;
             userProfile.bio = document.getElementById('profileBioInput').value;
 
@@ -1367,7 +1367,7 @@ let contextMenuTargetSimId = null;
          oncontextmenu="openSimContextMenu(event, '${sim.id}')"
          title="Fogd meg a mozgatáshoz: ${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}">
                         <div class="w-20 h-20 rounded-full overflow-hidden border-4 ${statusBorder} shadow-xl relative bg-stone-900 pointer-events-none">
-                            <img src="${sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Crect width=%2280%22 height=%2280%22 fill=%22%231c1917%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2212%22 fill=%22%23978b6e%22%3E?%3C/text%3E%3C/svg%3E';">
+                            <img src="${sim.avatar_url || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%223%22/%3E%3C/svg%3E'}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%223%22/%3E%3C/svg%3E';">
                         </div>
                         <div class="text-center truncate w-full pointer-events-none drop-shadow-md">
                             <h4 class="text-xs font-bold font-cinzel text-stone-900 dark:text-stone-100 truncate bg-white/70 dark:bg-stone-900/70 px-2 py-0.5 rounded-full backdrop-blur-xs border border-peach-200/40 dark:border-stone-700/50">${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}</h4>
@@ -1466,6 +1466,8 @@ let contextMenuTargetSimId = null;
     const lastName = document.getElementById('simLastName').value.trim();
     const firstName = document.getElementById('simFirstName').value.trim();
     const avatarUrl = document.getElementById('simAvatarPreview').src;
+    // Ha az avatarUrl a default üres kör, akkor null-ként mentjük
+    const finalAvatarUrl = avatarUrl.includes('data:image/svg+xml') ? null : avatarUrl;
     const motherId = document.getElementById('simMotherSelect').value || null;
     const fatherId = document.getElementById('simFatherSelect').value || null;
 
@@ -1477,7 +1479,7 @@ let contextMenuTargetSimId = null;
         status: simStatusValue,
         age: simSelectedAge,
         frame_color: simSelectedFrame,
-        avatar_url: avatarUrl,
+        avatar_url: finalAvatarUrl,
         gallery: simGalleryImages,
         mother_id: motherId,
         father_id: fatherId
@@ -1860,7 +1862,7 @@ let contextMenuTargetSimId = null;
     simSelectedAge = 'Fiatal felnőtt';
     simSelectedFrame = 'border-peach-500 shadow-peach-500/50';
 
-    const defaultImgUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80';
+    const defaultImgUrl = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22128%22 height=%22128%22 viewBox=%220 0 128 128%22%3E%3Ccircle cx=%2264%22 cy=%2264%22 r=%2264%22 fill=%22%231c1917%22 stroke=%22%23f1b8a5%22 stroke-width=%224%22/%3E%3C/svg%3E';
     const img = document.getElementById('simAvatarPreview');
     img.src = defaultImgUrl;
     img.style.transform = 'none';
