@@ -424,12 +424,12 @@
     <div id="createSimModal" class="fixed inset-0 bg-peach-950/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="glass-panel max-w-xl w-full rounded-[2.5rem] p-7 relative shadow-2xl border border-peach-200/80 my-8">
             <div class="flex justify-between items-center mb-6 border-b border-peach-200/50 dark:border-stone-800 pb-3">
-                <h3 class="text-lg font-bold font-cinzel flex items-center gap-2">
-                    <div class="w-4 h-4 bg-peach-500 rotate-45 rounded-xs flex items-center justify-center">
-                        <div class="w-2 h-2 bg-white rotate-45 rounded-xs"></div>
-                    </div>
-                    Sim Létrehozása
-                </h3>
+                <h3 id="simModalTitle" class="text-lg font-bold font-cinzel flex items-center gap-2">
+    <div class="w-4 h-4 bg-peach-500 rotate-45 rounded-xs flex items-center justify-center">
+        <div class="w-2 h-2 bg-white rotate-45 rounded-xs"></div>
+    </div>
+    Sim Létrehozása
+</h3>
                 <button onclick="closeCreateSimModal()" class="text-stone-500 hover:text-stone-900 transition p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
@@ -855,6 +855,8 @@ window.addEventListener('click', () => {
         menu.classList.add('hidden');
     }
 });
+        let editingSimId = null; // Jelöli, hogy épp szerkesztünk-e Simet
+let contextMenuTargetSimId = null;
         
         function contextMenuAction(action) {
     const menu = document.getElementById('simContextMenu');
@@ -864,8 +866,7 @@ window.addEventListener('click', () => {
     const sim = familySims.find(s => s.id === contextMenuTargetSimId);
 
     if (action === 'edit') {
-        // Itt megnyithatod a szerkesztő modált a sim adataival
-        alert(`Szerkesztés: ${sim.last_name} ${sim.first_name}`);
+        openEditSimModal(contextMenuTargetSimId);
     } 
     else if (action === 'children') {
         alert(`Gyerek hozzáadása ehhez: ${sim.last_name} ${sim.first_name}`);
@@ -876,6 +877,30 @@ window.addEventListener('click', () => {
     else if (action === 'delete') {
         deleteSim(contextMenuTargetSimId);
     }
+}
+
+        function openEditSimModal(simId) {
+    const sim = familySims.find(s => s.id === simId);
+    if (!sim) return;
+
+    editingSimId = sim.id;
+    document.getElementById('simModalTitle').textContent = "Sim Szerkesztése";
+    document.getElementById('simLastName').value = sim.last_name || '';
+    document.getElementById('simFirstName').value = sim.first_name || '';
+    document.getElementById('simAvatarPreview').src = sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
+    
+    simGalleryImages = sim.gallery ? [...sim.gallery] : [];
+    renderSimGalleryUI();
+
+    setSimStatus(sim.status || 'alive');
+    simSelectedAge = sim.age || 'Fiatal felnőtt';
+    simSelectedFrame = sim.frame_color || 'border-peach-500 shadow-peach-500/50';
+    
+    populateParentSelects();
+    document.getElementById('simMotherSelect').value = sim.mother_id || '';
+    document.getElementById('simFatherSelect').value = sim.father_id || '';
+
+    document.getElementById('createSimModal').classList.remove('hidden');
 }
         
         function toggleFamilyDropdown() {
@@ -1424,46 +1449,61 @@ window.addEventListener('click', () => {
         }
 
         async function handleCreateSimSubmit(e) {
-            e.preventDefault();
-            if (!activeFamilyTree || !currentUser || !supabaseClient) {
-                alert("Nincs kiválasztott családfa vagy bejelentkezett felhasználó!");
-                return;
-            }
+    e.preventDefault();
+    if (!activeFamilyTree || !currentUser || !supabaseClient) {
+        alert("Nincs kiválasztott családfa vagy bejelentkezett felhasználó!");
+        return;
+    }
 
-            const lastName = document.getElementById('simLastName').value.trim();
-            const firstName = document.getElementById('simFirstName').value.trim();
-            const avatarUrl = document.getElementById('simAvatarPreview').src;
-            const motherId = document.getElementById('simMotherSelect').value || null;
-            const fatherId = document.getElementById('simFatherSelect').value || null;
+    const lastName = document.getElementById('simLastName').value.trim();
+    const firstName = document.getElementById('simFirstName').value.trim();
+    const avatarUrl = document.getElementById('simAvatarPreview').src;
+    const motherId = document.getElementById('simMotherSelect').value || null;
+    const fatherId = document.getElementById('simFatherSelect').value || null;
 
-            const newSimData = {
-                family_tree_id: activeFamilyTree.id,
-                user_id: currentUser.id,
-                last_name: lastName,
-                first_name: firstName,
-                status: simStatusValue,
-                age: simSelectedAge,
-                frame_color: simSelectedFrame,
-                avatar_url: avatarUrl,
-                gallery: simGalleryImages,
-                mother_id: motherId,
-                father_id: fatherId,
-                pos_x: 100 + (familySims.length * 40) % 600,
-                pos_y: 120 + (familySims.length * 30) % 400
-            };
+    const simData = {
+        family_tree_id: activeFamilyTree.id,
+        user_id: currentUser.id,
+        last_name: lastName,
+        first_name: firstName,
+        status: simStatusValue,
+        age: simSelectedAge,
+        frame_color: simSelectedFrame,
+        avatar_url: avatarUrl,
+        gallery: simGalleryImages,
+        mother_id: motherId,
+        father_id: fatherId
+    };
 
-            const { data, error } = await supabaseClient
-                .from('sims')
-                .insert([newSimData])
-                .select();
+    if (editingSimId) {
+        // Meglévő Sim frissítése
+        const { error } = await supabaseClient
+            .from('sims')
+            .update(simData)
+            .eq('id', editingSimId);
 
-            if (error) {
-                alert("Hiba a Sim mentésekor: " + error.message);
-                console.error(error);
-                return;
-            }
+        if (error) {
+            alert("Hiba a Sim frissítésekor: " + error.message);
+            return;
+        }
+    } else {
+        // Új Sim beszúrása kezdő pozícióval
+        simData.pos_x = 100 + (familySims.length * 40) % 600;
+        simData.pos_y = 120 + (familySims.length * 30) % 400;
 
-            const createdSim = data ? data[0] : null;
+        const { error } = await supabaseClient
+            .from('sims')
+            .insert([simData]);
+
+        if (error) {
+            alert("Hiba a Sim mentésekor: " + error.message);
+            return;
+        }
+    }
+
+    closeCreateSimModal();
+    await fetchSimsForActiveTree();
+}
 
             // --- ÚJ: Kölcsönös szülő-gyerek frissítés a kiválasztott szülőknél is ---
             if (createdSim && (motherId || fatherId)) {
@@ -1658,21 +1698,17 @@ window.addEventListener('click', () => {
         }
 
         function handleLocalImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const resultUrl = e.target.result;
-                if (activeFamilyTree) {
-                    currentBgConfig.value = `url('${resultUrl}')`;
-                    applyTreeBackground();
-                    saveBackgroundConfigToDB();
-                }
-            };
-            reader.readAsDataURL(file);
-            event.target.value = '';
-        }
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        currentBgConfig.value = `url('${e.target.result}')`;
+        applyTreeBackground();
+        saveBackgroundConfigToDB();
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
+}
 
         function handleSimAvatarUpload(event) {
             const file = event.target.files[0];
@@ -1777,43 +1813,41 @@ window.addEventListener('click', () => {
         }
 
         function openCreateSimModal() {
-            if (!activeFamilyTree) return;
-            
-            simStatusValue = 'alive';
-            setSimStatus('alive');
-            simSelectedAge = 'Fiatal felnőtt';
-            simSelectedFrame = 'border-peach-500 shadow-peach-500/50';
+    if (!activeFamilyTree) return;
 
-            const defaultImgUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80';
-            const img = document.getElementById('simAvatarPreview');
-            img.src = defaultImgUrl;
-            img.style.transform = 'none';
+    // Itt jelöljük, hogy most újat hozunk létre (nincs szerkesztett ID)
+    editingSimId = null;
+    const modalTitle = document.getElementById('simModalTitle');
+    if (modalTitle) modalTitle.textContent = "Sim Létrehozása";
 
-            const outerFrame = document.getElementById('simAvatarOuterFrame');
-            if (outerFrame) {
-                outerFrame.className = "w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-peach-500 overflow-hidden bg-stone-100 dark:bg-stone-800 shadow-lg relative transition-all duration-300";
-            }
+    simStatusValue = 'alive';
+    setSimStatus('alive');
+    simSelectedAge = 'Fiatal felnőtt';
+    simSelectedFrame = 'border-peach-500 shadow-peach-500/50';
 
-            simImageTransform = { scale: 1, x: 0, y: 0 };
-            simGalleryImages = [];
-            renderSimGalleryUI();
-            populateParentSelects();
+    const defaultImgUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80';
+    const img = document.getElementById('simAvatarPreview');
+    img.src = defaultImgUrl;
+    img.style.transform = 'none';
 
-            document.getElementById('simAvatarEffect').value = 'none';
-            document.getElementById('simLocalAvatarInput').value = '';
-            document.getElementById('simLastName').value = '';
-            document.getElementById('simFirstName').value = '';
-            document.getElementById('simAgeSelect').value = 'Fiatal felnőtt';
-            document.getElementById('simFrameColorSelect').value = 'border-peach-500 shadow-peach-500/50';
-            document.getElementById('simMotherSelect').value = '';
-            document.getElementById('simFatherSelect').value = '';
+    const outerFrame = document.getElementById('simAvatarOuterFrame');
+    if (outerFrame) {
+        outerFrame.className = "w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-peach-500 overflow-hidden bg-stone-100 dark:bg-stone-800 shadow-lg relative transition-all";
+    }
 
-            document.getElementById('simAgeDropdown').classList.add('hidden');
-            document.getElementById('simFrameDropdown').classList.add('hidden');
+    simImageTransform = { scale: 1, x: 0, y: 0 };
+    simGalleryImages = [];
+    renderSimGalleryUI();
+    populateParentSelects();
 
-            switchSimModalTab('karakter');
-            document.getElementById('createSimModal').classList.remove('hidden');
-        }
+    document.getElementById('simAvatarEffect').value = 'none';
+    document.getElementById('simLocalAvatarInput').value = '';
+    document.getElementById('simLastName').value = '';
+    document.getElementById('simFirstName').value = '';
+    document.getElementById('simAgeSelect').value = 'Fiatal felnőtt';
+
+    document.getElementById('createSimModal').classList.remove('hidden');
+}
 
         function closeCreateSimModal() {
             document.getElementById('createSimModal').classList.add('hidden');
