@@ -1556,8 +1556,12 @@ let contextMenuTargetSimId = null;
         simGalleryImages = [];
     } else {
         // Kiszűrjük a hibás, túlméretes vagy nem string elemeket, hogy ne akassza ki a böngészőt
-        simGalleryImages = simGalleryImages.filter(item => typeof item === 'string' && item.trim() !== '' && item.length < 2_000_000);
-    }
+        simGalleryImages = simGalleryImages.filter(item => 
+    typeof item === 'string' && 
+    item.trim() !== '' && 
+    !['null', 'undefined'].includes(item.trim().toLowerCase()) && // Hozzáadva
+    item.length < 2_000_000
+);
 
     let html = `
         <button type="button" onclick="document.getElementById('simGalleryFileInput').click()" class="flex-shrink-0 w-24 h-24 rounded-2xl border-2 border-dashed border-peach-400 bg-peach-500/10 hover:bg-peach-500/20 text-peach-600 dark:text-peach-400 flex flex-col items-center justify-center gap-1 transition shadow-sm sticky left-0 z-10 backdrop-blur-xs" title="Kép hozzáadása a Sim életéről">
