@@ -2104,7 +2104,7 @@
             await supabaseClient.auth.signOut();
         }
 
-        async function handleSession(session) {
+        async function handleSession(session, event = null) {
             currentUser = session?.user || null;
             if (currentUser) {
                 // Bejelentkezett felhasználó
@@ -2114,8 +2114,11 @@
                 await loadOrCreateUserProfile();
                 updateProfileButton();
                 await fetchFamilyTreesFromSupabase();
-                // Bejelentkezés után alapértelmezetten a Főoldalra megyünk
-                switchView('home');
+                
+                // Csak akkor megyünk a főoldalra, ha valóban bejelentkezés történt
+                if (event === 'SIGNED_IN' || !currentView) {
+                    switchView('home');
+                }
             } else {
                 // Nincs bejelentkezve - megjelenítjük a hitelesítési felületet
                 document.getElementById('authContainer').classList.add('active');
@@ -2848,10 +2851,10 @@
 
             try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
-                await handleSession(session);
+                await handleSession(session, 'INITIAL');
 
                 supabaseClient.auth.onAuthStateChange(async (event, session) => {
-                    await handleSession(session);
+                    await handleSession(session, event);
                 });
             } catch (error) {
                 console.warn("Supabase hiba:", error);
