@@ -195,6 +195,157 @@
             font-size: 10px; font-weight: 800; text-align: center; cursor: pointer;
         }
 
+        /* INTERAKTÍV KÉPSZERKESZTŐ */
+        .avatar-crop-view {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: grab;
+            background-color: var(--input-bg);
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .avatar-crop-view.has-image {
+            cursor: grab;
+        }
+
+        .avatar-crop-view:active {
+            cursor: grabbing;
+        }
+
+        .avatar-crop-img {
+            max-width: none;
+            max-height: none;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.1s ease;
+            pointer-events: none;
+        }
+
+        .avatar-crop-view.dragging .avatar-crop-img {
+            transition: none;
+        }
+
+        .avatar-crop-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 4px;
+            font-size: 9px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .avatar-crop-view:hover .avatar-crop-overlay {
+            opacity: 1;
+        }
+
+        .avatar-crop-view:hover {
+            border-color: var(--accent-color);
+        }
+
+        .image-controls-mini {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 8px;
+            background: var(--nav-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .mini-btn {
+            background: var(--card-solid);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            color: var(--text-color);
+            font-weight: 700;
+        }
+
+        .mini-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        /* KÉPVÁGÓ MODAL */
+        .image-crop-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .crop-preview-area {
+            width: 300px;
+            height: 300px;
+            background-color: var(--input-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .crop-circle-mask {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            border: 3px solid var(--accent-color);
+            box-shadow: 0 0 20px rgba(46, 213, 115, 0.3);
+            cursor: grab;
+        }
+
+        .crop-circle-mask:active {
+            cursor: grabbing;
+        }
+
+        .crop-circle-mask img {
+            max-width: none;
+            max-height: none;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.1s ease;
+            pointer-events: none;
+        }
+
+        .crop-circle-mask.dragging img {
+            transition: none;
+        }
+
+        .crop-instructions {
+            text-align: center;
+            color: var(--subtext-color);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .crop-instructions p {
+            margin: 4px 0;
+        }
+
         /* UI ELEMEK & STÍLUSOS FEJLÉC */
         .top-nav-container { padding: 16px 24px 0 24px; position: relative; z-index: 1100; }
         .top-nav {
@@ -770,6 +921,32 @@
     </div>
 
     <!-- SIM CARD & SZERKESZTŐ MODAL -->
+    <!-- KÉPVÁGÓ MODAL -->
+    <div class="modal-overlay" id="imageCropModal" style="z-index: 2000;">
+        <div class="modal-card" style="max-width: 500px;">
+            <button type="button" class="close-btn" onclick="closeImageCropModal()">&times;</button>
+            <h3 class="modal-title">Profilkép beállítása</h3>
+            
+            <div class="image-crop-container">
+                <div class="crop-preview-area">
+                    <div class="crop-circle-mask" id="cropCircleMask">
+                        <img id="cropImage" src="" alt="Kép vágás" style="display:none;">
+                    </div>
+                </div>
+                <div class="crop-instructions">
+                    <p>🖱️ Húzd a képet az elmozgatáshoz</p>
+                    <p>🔄 Görgővel közelíts vagy távolíts</p>
+                    <p>📁 Kattints a képre új tallózáshoz</p>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeImageCropModal()">Mégse</button>
+                <button type="button" class="btn-primary" onclick="saveCropedImage()">Mentés</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="simModal">
         <div class="modal-card">
             <button type="button" class="close-btn" onclick="closeSimModal()">&times;</button>
@@ -789,7 +966,7 @@
                 
                 <!-- INTEGRÁLT AVATÁR ÉS KÉPSZERKESZTŐ BOX -->
                 <div class="avatar-editor-container">
-                    <div class="avatar-crop-view" onclick="triggerFileInput()" title="Kattints a kép módosításához">
+                    <div class="avatar-crop-view" id="avatarCropView" title="Kattints a kép módosításához" onclick="handleAvatarClick()">
                         <img id="modalAvatar" class="avatar-crop-img" src="" alt="Sim Avatar" style="display:none;">
                         <div id="modalAvatarPlaceholder" style="font-size:36px;">👤</div>
                         <div class="avatar-crop-overlay">
@@ -798,37 +975,16 @@
                         </div>
                     </div>
 
-                    <!-- KÉPSZERKESZTŐ VEZÉRLŐK -->
-                    <div class="inline-controls-grid" id="imageEditorBox" style="display: none;">
-                        <div class="style-group">
-                            <label><span>Nagyítás (Zoom)</span> <span id="imgZoomVal">100%</span></label>
-                            <input type="range" id="imgZoomSlider" min="1" max="2.5" step="0.05" value="1" oninput="updateImageTransform()">
-                        </div>
-
-                        <div class="form-row">
-                            <div class="style-group" style="flex:1;">
-                                <label>Vízszintes (X)</label>
-                                <input type="range" id="imgOffsetX" min="-50" max="50" step="1" value="0" oninput="updateImageTransform()">
-                            </div>
-                            <div class="style-group" style="flex:1;">
-                                <label>Függőleges (Y)</label>
-                                <input type="range" id="imgOffsetY" min="-50" max="50" step="1" value="0" oninput="updateImageTransform()">
-                            </div>
-                        </div>
-
-                        <div class="form-row" style="align-items: flex-end;">
-                            <div class="style-group" style="flex:1;">
-                                <label>Filter / Szűrő</label>
-                                <select id="imgFilterSelect" onchange="updateImageTransform()">
-                                    <option value="none" selected>Normál</option>
-                                    <option value="grayscale(100%)">Fekete-Fehér</option>
-                                    <option value="sepia(80%)">Szépia</option>
-                                    <option value="contrast(140%) brightness(110%)">Kontrasztos</option>
-                                    <option value="saturate(200%)">Élénk</option>
-                                </select>
-                            </div>
-                            <button type="button" class="btn-secondary" style="padding: 6px 10px; font-size: 11px;" onclick="rotateImage()">🔄 90° Forgatás</button>
-                        </div>
+                    <!-- Egyszerűsített filter választó -->
+                    <div class="image-controls-mini" id="imageEditorBox" style="display: none;">
+                        <button type="button" class="mini-btn" onclick="rotateImage()">🔄</button>
+                        <select id="imgFilterSelect" style="padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-solid); color: var(--text-color); font-size: 10px;" onchange="updateImageTransform()">
+                            <option value="none" selected>Normál</option>
+                            <option value="grayscale(100%)">Fekete-Fehér</option>
+                            <option value="sepia(80%)">Szépia</option>
+                            <option value="contrast(140%) brightness(110%)">Kontrasztos</option>
+                            <option value="saturate(200%)">Élénk</option>
+                        </select>
                     </div>
                 </div>
 
@@ -993,7 +1149,16 @@
 
         let supabaseClient = null;
         try {
-            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                db: {
+                    schema: 'public'
+                },
+                global: {
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                }
+            });
         } catch (e) {
             console.error("Supabase hiba:", e);
         }
@@ -1053,6 +1218,26 @@
 
         let tempUploadedImage = '';
         let currentRotation = 0;
+        let imageScale = 1;
+        let imageOffsetX = 0;
+        let imageOffsetY = 0;
+        let isDraggingImage = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let imageStartOffsetX = 0;
+        let imageStartOffsetY = 0;
+        let hasDragged = false;
+        
+        // KÉPVÁGÓ MODAL VÁLTOZÓK
+        let cropImageScale = 1;
+        let cropImageOffsetX = 0;
+        let cropImageOffsetY = 0;
+        let isDraggingCropImage = false;
+        let cropDragStartX = 0;
+        let cropDragStartY = 0;
+        let cropImageStartOffsetX = 0;
+        let cropImageStartOffsetY = 0;
+        let hasDraggedCrop = false;
 
         let zoomLevel = 1;
         let panX = 0;
@@ -1068,6 +1253,137 @@
 
         function triggerFileInput() {
             document.getElementById('editImageInput').click();
+        }
+
+        function handleAvatarClick() {
+            if (!tempUploadedImage) {
+                triggerFileInput();
+            } else {
+                // Ha van kép, akkor megnyitjuk a képvágó modalt
+                openImageCropModal();
+            }
+        }
+
+        // KÉPVÁGÓ MODAL FUNKCIÓK
+        function openImageCropModal() {
+            const cropModal = document.getElementById('imageCropModal');
+            const cropImage = document.getElementById('cropImage');
+            
+            cropImage.src = tempUploadedImage;
+            cropImage.style.display = 'block';
+            
+            // Reset crop variables
+            cropImageScale = 1;
+            cropImageOffsetX = 0;
+            cropImageOffsetY = 0;
+            
+            cropModal.classList.add('active');
+            updateCropImageTransform();
+            initCropImageDrag();
+        }
+
+        function closeImageCropModal() {
+            const cropModal = document.getElementById('imageCropModal');
+            cropModal.classList.remove('active');
+        }
+
+        function saveCropedImage() {
+            // A crop beállításokat átvisszük a fő változókba
+            imageScale = cropImageScale;
+            imageOffsetX = cropImageOffsetX;
+            imageOffsetY = cropImageOffsetY;
+            
+            // Frissítjük a modális avatar-t
+            updateImageTransform();
+            
+            closeImageCropModal();
+        }
+
+        function updateCropImageTransform() {
+            const cropImage = document.getElementById('cropImage');
+            cropImage.style.transform = `scale(${cropImageScale}) translate(${cropImageOffsetX}px, ${cropImageOffsetY}px)`;
+        }
+
+        function initCropImageDrag() {
+            const cropMask = document.querySelector('.crop-circle-mask');
+            if (!cropMask) return;
+
+            cropMask.addEventListener('mousedown', startCropImageDrag);
+            cropMask.addEventListener('touchstart', startCropImageDrag, { passive: false });
+            cropMask.addEventListener('wheel', handleCropImageWheel, { passive: false });
+        }
+
+        function startCropImageDrag(e) {
+            e.preventDefault();
+            
+            hasDraggedCrop = false;
+            isDraggingCropImage = true;
+            const cropMask = document.querySelector('.crop-circle-mask');
+            cropMask.classList.add('dragging');
+
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            cropDragStartX = clientX;
+            cropDragStartY = clientY;
+            cropImageStartOffsetX = cropImageOffsetX;
+            cropImageStartOffsetY = cropImageOffsetY;
+
+            document.addEventListener('mousemove', dragCropImage);
+            document.addEventListener('mouseup', stopCropImageDrag);
+            document.addEventListener('touchmove', dragCropImage, { passive: false });
+            document.addEventListener('touchend', stopCropImageDrag);
+        }
+
+        function dragCropImage(e) {
+            if (!isDraggingCropImage) return;
+            e.preventDefault();
+
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            const deltaX = clientX - cropDragStartX;
+            const deltaY = clientY - cropDragStartY;
+
+            // Ha több mint 5px-t mozgunk, akkor az húzásnak számít
+            if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+                hasDraggedCrop = true;
+            }
+
+            cropImageOffsetX = cropImageStartOffsetX + deltaX;
+            cropImageOffsetY = cropImageStartOffsetY + deltaY;
+
+            updateCropImageTransform();
+        }
+
+        function stopCropImageDrag() {
+            isDraggingCropImage = false;
+            const cropMask = document.querySelector('.crop-circle-mask');
+            if (cropMask) cropMask.classList.remove('dragging');
+
+            document.removeEventListener('mousemove', dragCropImage);
+            document.removeEventListener('mouseup', stopCropImageDrag);
+            document.removeEventListener('touchmove', dragCropImage);
+            document.removeEventListener('touchend', stopCropImageDrag);
+            
+            // Ha nem húztunk (kattintás volt), akkor nyissuk meg a fájlválasztót
+            if (!hasDraggedCrop) {
+                triggerFileInput();
+            }
+        }
+
+        function handleCropImageWheel(e) {
+            e.preventDefault();
+
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            cropImageScale = Math.max(0.5, Math.min(3, cropImageScale + delta));
+            updateCropImageTransform();
+        }
+
+        // Régi képszerkesztő funkciók eltávolítva - most a képvágó modalt használjuk
+        function rotateImage() {
+            currentRotation = (currentRotation + 90) % 360;
+            updateImageTransform();
         }
 
         function toggleAccordion(groupId) {
@@ -1862,11 +2178,14 @@
             if (!currentUser || !supabaseClient) return;
 
             try {
+                // Cache busting: hozzáadunk egy véletlenszerű timestamp-et
+                const timestamp = Date.now();
                 const { data, error } = await supabaseClient
                     .from('family_trees')
                     .select('id, name, background_config, sims, journal, created_at, updated_at')
                     .eq('user_id', currentUser.id)
-                    .order('created_at', { ascending: false });
+                    .order('created_at', { ascending: false })
+                    .limit(100);
 
                 if (error) {
                     console.error('Hiba a családfák betöltésekor:', error);
@@ -1920,7 +2239,34 @@
 
                 if (error) {
                     console.error("Hiba a családfa mentésekor:", error);
-                    alert("Hiba a családfa mentésekor: " + error.message);
+                    
+                    // Ha schema cache hiba, próbáljuk meg újra
+                    if (error.message && error.message.includes('journal')) {
+                        console.log("Schema cache hiba - kényszerített újrapróbálkozás...");
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        const retryResult = await supabaseClient
+                            .from('family_trees')
+                            .upsert({
+                                id: tree.id,
+                                user_id: currentUser.id,
+                                name: tree.name,
+                                background_config: tree.bgConfig,
+                                sims: tree.sims,
+                                journal: tree.journal || [],
+                                updated_at: new Date()
+                            }, {
+                                onConflict: 'id'
+                            });
+                            
+                        if (retryResult.error) {
+                            alert("Hiba a családfa mentésekor: " + retryResult.error.message);
+                        } else {
+                            console.log("Családfa sikeresen mentve (újrapróbálkozás):", tree.name);
+                        }
+                    } else {
+                        alert("Hiba a családfa mentésekor: " + error.message);
+                    }
                 } else {
                     console.log("Családfa sikeresen mentve:", tree.name);
                 }
@@ -2118,9 +2464,10 @@
             document.getElementById('avatarBadgeCount').innerText = avatarCount;
 
             const transform = sim.imageTransform || { scale: 1, rotate: 0, offsetX: 0, offsetY: 0, filter: 'none' };
-            document.getElementById('imgZoomSlider').value = transform.scale || 1;
-            document.getElementById('imgOffsetX').value = transform.offsetX || 0;
-            document.getElementById('imgOffsetY').value = transform.offsetY || 0;
+            imageScale = transform.scale || 1;
+            imageOffsetX = transform.offsetX || 0;
+            imageOffsetY = transform.offsetY || 0;
+            currentRotation = transform.rotate || 0;
             document.getElementById('imgFilterSelect').value = transform.filter || 'none';
 
             if (tempUploadedImage) {
@@ -2392,9 +2739,12 @@
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) { 
+                reader.onload = function(e) {
                     tempUploadedImage = e.target.result;
                     currentRotation = 0;
+                    imageScale = 1;
+                    imageOffsetX = 0;
+                    imageOffsetY = 0;
 
                     const modalAvatar = document.getElementById('modalAvatar');
                     const placeholder = document.getElementById('modalAvatarPlaceholder');
@@ -2402,13 +2752,24 @@
                     modalAvatar.style.display = 'block';
                     placeholder.style.display = 'none';
 
-                    document.getElementById('imgZoomSlider').value = 1;
-                    document.getElementById('imgOffsetX').value = 0;
-                    document.getElementById('imgOffsetY').value = 0;
                     document.getElementById('imgFilterSelect').value = 'none';
 
                     document.getElementById('imageEditorBox').style.display = 'flex';
                     updateImageTransform();
+                    
+                    // Ha a képvágó modal nyitva van, frissítjük azt is
+                    const cropModal = document.getElementById('imageCropModal');
+                    if (cropModal.classList.contains('active')) {
+                        const cropImage = document.getElementById('cropImage');
+                        cropImage.src = tempUploadedImage;
+                        cropImage.style.display = 'block';
+                        
+                        // Reset crop variables
+                        cropImageScale = 1;
+                        cropImageOffsetX = 0;
+                        cropImageOffsetY = 0;
+                        updateCropImageTransform();
+                    }
                 };
                 reader.readAsDataURL(file);
             }
@@ -2420,15 +2781,10 @@
         }
 
         function updateImageTransform() {
-            const scale = document.getElementById('imgZoomSlider').value;
-            const offsetX = document.getElementById('imgOffsetX').value;
-            const offsetY = document.getElementById('imgOffsetY').value;
             const filter = document.getElementById('imgFilterSelect').value;
 
-            document.getElementById('imgZoomVal').innerText = `${Math.round(scale * 100)}%`;
-
             const imgEl = document.getElementById('modalAvatar');
-            imgEl.style.transform = `scale(${scale}) rotate(${currentRotation}deg) translate(${offsetX}px, ${offsetY}px)`;
+            imgEl.style.transform = `scale(${imageScale}) rotate(${currentRotation}deg) translate(${imageOffsetX}px, ${imageOffsetY}px)`;
             imgEl.style.filter = filter;
         }
 
@@ -2448,10 +2804,10 @@
 
             if (tempUploadedImage) {
                 sim.imageTransform = {
-                    scale: parseFloat(document.getElementById('imgZoomSlider').value),
+                    scale: imageScale,
                     rotate: currentRotation,
-                    offsetX: parseInt(document.getElementById('imgOffsetX').value),
-                    offsetY: parseInt(document.getElementById('imgOffsetY').value),
+                    offsetX: imageOffsetX,
+                    offsetY: imageOffsetY,
                     filter: document.getElementById('imgFilterSelect').value
                 };
             } else {
