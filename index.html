@@ -889,7 +889,9 @@ let contextMenuTargetSimId = null;
     document.getElementById('simFirstName').value = sim.first_name || '';
     document.getElementById('simAvatarPreview').src = sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
     
-    simGalleryImages = sim.gallery ? [...sim.gallery] : [];
+    simGalleryImages = Array.isArray(sim.gallery) 
+    ? [...sim.gallery] 
+    : (typeof sim.gallery === 'string' && sim.gallery.trim() !== '' ? JSON.parse(sim.gallery) : []);
     renderSimGalleryUI();
 
     setSimStatus(sim.status || 'alive');
