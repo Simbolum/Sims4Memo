@@ -889,13 +889,9 @@ let contextMenuTargetSimId = null;
     document.getElementById('simFirstName').value = sim.first_name || '';
     document.getElementById('simAvatarPreview').src = sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
 
-            console.log("--- SIM GALÉRIA DIAGNOSZTIKA ---");
-console.log("Mi a sim.gallery értéke?", sim.gallery);
-console.log("Milyen típusú adat?", typeof sim.gallery);
-console.log("Vajon tömb-e az Array.isArray szerint?", Array.isArray(sim.gallery));
     simGalleryImages = Array.isArray(sim.gallery) 
-    ? [...sim.gallery] 
-    : (typeof sim.gallery === 'string' && sim.gallery.trim() !== '' ? JSON.parse(sim.gallery) : []);
+    ? sim.gallery.filter(img => typeof img === 'string' && img.trim() !== '' && !['null', 'undefined'].includes(img.trim().toLowerCase()))
+    : [];
     renderSimGalleryUI();
 
     setSimStatus(sim.status || 'alive');
@@ -1559,9 +1555,11 @@ console.log("Vajon tömb-e az Array.isArray szerint?", Array.isArray(sim.gallery
     if (!container) return;
 
     // Biztonsági szűrés: ha a simGalleryImages nem tömb, vagy valami óriási hiba van benne, nullázzuk
-    if (!Array.isArray(simGalleryImages)) {
-        simGalleryImages = [];
+    if (Array.isArray(simGalleryImages)) {
+        simGalleryImages = simGalleryImages.filter(img => typeof img === 'string' && img.trim() !== '' && !['null', 'undefined'].includes(img.trim().toLowerCase()));
     } else {
+        simGalleryImages = [];
+    }
         // Kiszűrjük a hibás, túlméretes vagy nem string elemeket, hogy ne akassza ki a böngészőt
         simGalleryImages = simGalleryImages.filter(item => 
     typeof item === 'string' && 
