@@ -262,11 +262,11 @@
             <!-- CSALÁDFÁIM NÉZET - TELJES KÉPERNYŐS FIX POZÍCIONÁLÁSSAL -->
             <div id="view-csaladfa-csaladfaim" class="page-view hidden fixed inset-0 z-20 p-0 m-0 overflow-hidden">
                 
-                <!-- Dinamikus családfa háttér tároló (Fix, nem zoomolódik és nem mozdul) -->
+                <!-- Dinamikus családfa háttér tároló -->
                 <div id="treeBackgroundContainer" class="absolute inset-0 z-0 bg-cover bg-center transition-all duration-300"></div>
 
-                <!-- Itt jelennek meg a simek az aktív családfán (Zoomolható réteg) -->
-                <div id="simsCanvasArea" class="absolute inset-0 z-10 pointer-events-none transition-transform duration-75 origin-center"></div>
+                <!-- Itt jelennek meg a simek az aktív családfán -->
+                <div id="simsCanvasArea" class="absolute inset-0 z-10 pointer-events-none"></div>
 
                 <!-- Bal felső fix doboz: Családfák -->
                 <div class="absolute top-0 left-0 z-30 w-64 p-3.5 space-y-2.5">
@@ -356,28 +356,14 @@
                 </div>
 
                 <!-- Középső interaktív vászon üres üzenet -->
-                <div class="w-full h-full absolute inset-0 pointer-events-none flex items-center justify-center z-20">
+                <div class="w-full h-full absolute inset-0 pointer-events-none flex items-center justify-center">
                     <div id="activeTreePlaceholder" class="text-stone-400 dark:text-stone-500 text-xs font-cinzel italic bg-white/40 dark:bg-stone-900/40 px-6 py-4 rounded-2xl backdrop-blur-md border border-peach-200/30">
                         Válassz ki vagy hozz létre egy családfát a bal felső sarokból a kezdéshez.
                     </div>
                 </div>
 
-                <!-- Jobb alul megjelenő Zoom és Sim létrehozása lebegő gombok -->
-                <div id="createSimFloatingBtnContainer" class="absolute bottom-8 right-8 z-30 hidden flex flex-col items-end gap-3">
-                    <!-- Zoom vezérlő sáv -->
-                    <div class="glass-panel px-3 py-2 rounded-2xl shadow-lg border border-peach-300 dark:border-stone-700 flex items-center gap-2 bg-white/85 dark:bg-stone-900/85 backdrop-blur-md">
-                        <button onclick="zoomOut()" class="w-8 h-8 rounded-xl bg-peach-100 dark:bg-stone-800 hover:bg-peach-200 text-stone-700 dark:text-stone-300 font-bold flex items-center justify-center transition" title="Kicsinyítés (-)">
-                            <i class="fa-solid fa-magnifying-glass-minus text-xs"></i>
-                        </button>
-                        <span id="zoomLevelLabel" class="text-xs font-mono font-bold text-peach-600 dark:text-peach-400 w-12 text-center">100%</span>
-                        <button onclick="zoomIn()" class="w-8 h-8 rounded-xl bg-peach-100 dark:bg-stone-800 hover:bg-peach-200 text-stone-700 dark:text-stone-300 font-bold flex items-center justify-center transition" title="Nagyítás (+)">
-                            <i class="fa-solid fa-magnifying-glass-plus text-xs"></i>
-                        </button>
-                        <button onclick="resetZoom()" class="w-8 h-8 rounded-xl bg-peach-100 dark:bg-stone-800 hover:bg-peach-200 text-stone-700 dark:text-stone-300 font-bold flex items-center justify-center transition text-[10px]" title="Alaphelyzet (100%)">
-                            1:1
-                        </button>
-                    </div>
-
+                <!-- Jobb alul megjelenő Sim létrehozása lebegő gomb -->
+                <div id="createSimFloatingBtnContainer" class="absolute bottom-8 right-8 z-30 hidden">
                     <button onclick="openCreateSimModal()" class="px-5 py-3.5 bg-gradient-to-r from-peach-500 to-peach-600 hover:from-peach-400 hover:to-peach-500 text-white font-bold rounded-2xl shadow-xl shadow-peach-500/35 transition-all transform hover:scale-105 flex items-center gap-3 text-xs font-cinzel">
                         <div class="w-4 h-4 bg-white rotate-45 rounded-xs flex items-center justify-center">
                             <div class="w-2 h-2 bg-peach-600 rotate-45 rounded-xs"></div>
@@ -386,16 +372,6 @@
                     </button>
                 </div>
 
-            </div>
-
-            <!-- SIM JOBB KLIKK KONTEXTUS MENÜ -->
-            <div id="simContextMenu" class="fixed z-[90] hidden glass-panel w-48 rounded-2xl p-1.5 shadow-2xl border border-peach-300 dark:border-stone-700 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md">
-                <button onclick="handleContextMenuEdit()" class="w-full text-left px-3.5 py-2 rounded-xl hover:bg-peach-500 hover:text-white text-xs font-bold transition flex items-center gap-2.5 text-stone-800 dark:text-stone-200">
-                    <i class="fa-solid fa-user-pen text-peach-500"></i> Sim szerkesztése
-                </button>
-                <button onclick="handleContextMenuDelete()" class="w-full text-left px-3.5 py-2 rounded-xl hover:bg-rose-600 hover:text-white text-xs font-bold transition flex items-center gap-2.5 text-rose-600 dark:text-rose-400">
-                    <i class="fa-solid fa-trash-can"></i> Sim törlése
-                </button>
             </div>
 
             <div id="view-csaladfa-simek" class="page-view space-y-6 hidden w-full">
@@ -448,7 +424,7 @@
     <div id="createSimModal" class="fixed inset-0 bg-peach-950/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="glass-panel max-w-xl w-full rounded-[2.5rem] p-7 relative shadow-2xl border border-peach-200/80 my-8">
             <div class="flex justify-between items-center mb-6 border-b border-peach-200/50 dark:border-stone-800 pb-3">
-                <h3 id="simModalTitle" class="text-lg font-bold font-cinzel flex items-center gap-2">
+                <h3 class="text-lg font-bold font-cinzel flex items-center gap-2">
                     <div class="w-4 h-4 bg-peach-500 rotate-45 rounded-xs flex items-center justify-center">
                         <div class="w-2 h-2 bg-white rotate-45 rounded-xs"></div>
                     </div>
@@ -584,7 +560,7 @@
                         </div>
                     </div>
 
-                    <!-- SZÜLŐK SZEKCIÓ -->
+                    <!-- ÚJ SZÜLŐK SZEKCIÓ -->
                     <div class="space-y-3 pt-3 border-t border-peach-200/50 dark:border-stone-800">
                         <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 ml-1 font-cinzel">
                             <i class="fa-solid fa-people-roof text-peach-500 mr-1.5"></i> Szülők (Háztartás simei)
@@ -769,9 +745,6 @@
         let simSelectedFrame = 'border-peach-500 shadow-peach-500/50';
         let currentLightboxIndex = 0;
 
-        // ZOOM ÁLLAPOT
-        let currentZoom = 1;
-
         let currentBgConfig = {
             value: '',
             size: 'cover',
@@ -786,9 +759,6 @@
         };
 
         let simStatusValue = 'alive';
-        let editingSimId = null;
-        let contextMenuSimId = null;
-
         let simImageTransform = {
             scale: 1,
             x: 0,
@@ -830,50 +800,7 @@
             window.addEventListener('mouseup', handleGlobalSimDragEnd);
             window.addEventListener('touchmove', handleGlobalSimDragMove, { passive: false });
             window.addEventListener('touchend', handleGlobalSimDragEnd);
-
-            // Egérkerék ZOOM esemény figyelése a családfa nézeten
-            const treeContainer = document.getElementById('view-csaladfa-csaladfaim');
-            if (treeContainer) {
-                treeContainer.addEventListener('wheel', (e) => {
-                    if (treeContainer.classList.contains('hidden')) return;
-                    if (e.target.closest('#treeCustomizationMenu') || e.target.closest('#treeListContainer') || e.target.closest('#simContextMenu')) return;
-                    
-                    e.preventDefault();
-                    if (e.deltaY < 0) {
-                        zoomIn();
-                    } else {
-                        zoomOut();
-                    }
-                }, { passive: false });
-            }
         });
-
-        // ZOOM FUNKCIÓK
-        function zoomIn() {
-            currentZoom = Math.min(currentZoom + 0.15, 2.5);
-            applySimsZoom();
-        }
-
-        function zoomOut() {
-            currentZoom = Math.max(currentZoom - 0.15, 0.3);
-            applySimsZoom();
-        }
-
-        function resetZoom() {
-            currentZoom = 1;
-            applySimsZoom();
-        }
-
-        function applySimsZoom() {
-            const canvasArea = document.getElementById('simsCanvasArea');
-            if (canvasArea) {
-                canvasArea.style.transform = `scale(${currentZoom})`;
-            }
-            const label = document.getElementById('zoomLevelLabel');
-            if (label) {
-                label.textContent = `${Math.round(currentZoom * 100)}%`;
-            }
-        }
 
         function toggleSideNav() {
             const menu = document.getElementById('sideNavMenu');
@@ -952,7 +879,6 @@
             const mainHeader = document.getElementById('mainHeader');
             if (pageId === 'csaladfa-csaladfaim') {
                 mainHeader.classList.add('hidden');
-                resetZoom(); // Visszaállítjuk alap zoomra váltáskor
             } else {
                 mainHeader.classList.remove('hidden');
             }
@@ -1241,8 +1167,6 @@
                 document.getElementById('createSimFloatingBtnContainer').classList.remove('hidden');
                 document.getElementById('treeCustomizationWrapper').classList.remove('hidden');
                 
-                resetZoom();
-
                 let savedConfig = null;
                 try {
                     const localConf = localStorage.getItem(`s4memo_bgconf_${tree.id}`);
@@ -1289,6 +1213,7 @@
             populateParentSelects();
         }
 
+        // --- ÚJ: Szülő lenyitók feltöltése a háztartás simjeivel ---
         function populateParentSelects() {
             const motherSelect = document.getElementById('simMotherSelect');
             const fatherSelect = document.getElementById('simFatherSelect');
@@ -1296,7 +1221,6 @@
 
             let optionsHtml = '<option value="">Nincs megadva</option>';
             familySims.forEach(sim => {
-                if (editingSimId && sim.id === editingSimId) return;
                 optionsHtml += `<option value="${sim.id}">${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}</option>`;
             });
 
@@ -1328,8 +1252,7 @@
                          style="left: ${posX}px; top: ${posY}px;"
                          onmousedown="startSimDrag(event, '${sim.id}')"
                          ontouchstart="startSimDrag(event, '${sim.id}')"
-                         oncontextmenu="openSimContextMenu(event, '${sim.id}')"
-                         title="Fogd meg a mozgatáshoz: ${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)} (Jobb klikk a menühöz)">
+                         title="Fogd meg a mozgatáshoz: ${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}">
                         <div class="w-20 h-20 rounded-full overflow-hidden border-4 ${statusBorder} shadow-xl relative bg-stone-900 pointer-events-none">
                             <img src="${sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}" class="w-full h-full object-cover">
                         </div>
@@ -1344,64 +1267,7 @@
             canvas.innerHTML = html;
         }
 
-        // --- KONTEXTUS MENÜ KEZELÉS ---
-        function openSimContextMenu(e, simId) {
-            e.preventDefault();
-            e.stopPropagation();
-            contextMenuSimId = simId;
-
-            const menu = document.getElementById('simContextMenu');
-            if (!menu) return;
-
-            menu.style.left = `${e.clientX}px`;
-            menu.style.top = `${e.clientY}px`;
-            menu.classList.remove('hidden');
-
-            const closeMenu = (ev) => {
-                if (!menu.contains(ev.target)) {
-                    menu.classList.add('hidden');
-                    window.removeEventListener('click', closeMenu);
-                }
-            };
-            setTimeout(() => {
-                window.addEventListener('click', closeMenu);
-            }, 10);
-        }
-
-        function handleContextMenuEdit() {
-            const menu = document.getElementById('simContextMenu');
-            if (menu) menu.classList.add('hidden');
-            if (contextMenuSimId) {
-                openEditSimModal(contextMenuSimId);
-            }
-        }
-
-        async function handleContextMenuDelete() {
-            const menu = document.getElementById('simContextMenu');
-            if (menu) menu.classList.add('hidden');
-            if (!contextMenuSimId) return;
-
-            if (!confirm('Biztosan törölni szeretnéd ezt a Simet?')) return;
-
-            if (supabaseClient && currentUser) {
-                const { error } = await supabaseClient
-                    .from('sims')
-                    .delete()
-                    .eq('id', contextMenuSimId);
-
-                if (error) {
-                    alert('Hiba a törlés során: ' + error.message);
-                    return;
-                }
-            }
-
-            familySims = familySims.filter(s => s.id !== contextMenuSimId);
-            renderSimsCanvas();
-            populateParentSelects();
-            contextMenuSimId = null;
-        }
-
-        // SIM DRAG & DROP LOGIKA (Zoom-kompatibilis)
+        // --- SIM DRAG & DROP LOGIKA ---
         function startSimDrag(e, simId) {
             e.stopPropagation();
             activeDraggedSimId = simId;
@@ -1417,8 +1283,8 @@
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
             const rect = card.getBoundingClientRect();
-            simDragOffsetX = (clientX - rect.left) / currentZoom;
-            simDragOffsetY = (clientY - rect.top) / currentZoom;
+            simDragOffsetX = clientX - rect.left;
+            simDragOffsetY = clientY - rect.top;
         }
 
         function handleGlobalSimDragMove(e) {
@@ -1432,8 +1298,8 @@
             if (!canvas) return;
             const canvasRect = canvas.getBoundingClientRect();
 
-            let newX = (clientX - canvasRect.left) / currentZoom - simDragOffsetX;
-            let newY = (clientY - canvasRect.top) / currentZoom - simDragOffsetY;
+            let newX = clientX - canvasRect.left - simDragOffsetX;
+            let newY = clientY - canvasRect.top - simDragOffsetY;
 
             const card = document.getElementById(`sim-card-${activeDraggedSimId}`);
             if (card) {
@@ -1477,96 +1343,12 @@
             activeDraggedSimId = null;
         }
 
-        function openCreateSimModal() {
-            editingSimId = null;
-            document.getElementById('simModalTitle').innerHTML = `
-                <div class="w-4 h-4 bg-peach-500 rotate-45 rounded-xs flex items-center justify-center">
-                    <div class="w-2 h-2 bg-white rotate-45 rounded-xs"></div>
-                </div>
-                Sim Létrehozása
-            `;
-            document.getElementById('simLastName').value = '';
-            document.getElementById('simFirstName').value = '';
-            document.getElementById('simAvatarPreview').src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
-            simGalleryImages = [];
-            renderSimGalleryUI();
-            setSimStatus('alive');
-            simSelectedAge = 'Fiatal felnőtt';
-            simSelectedFrame = 'border-peach-500 shadow-peach-500/50';
-            document.getElementById('simAvatarEffect').value = 'none';
-            applySimImageEffect('none');
-            document.getElementById('simMotherSelect').value = '';
-            document.getElementById('simFatherSelect').value = '';
-            populateParentSelects();
-            document.getElementById('createSimModal').classList.remove('hidden');
-        }
-
-        function openEditSimModal(simId) {
-            const sim = familySims.find(s => s.id === simId);
-            if (!sim) return;
-
-            editingSimId = simId;
-            document.getElementById('simModalTitle').innerHTML = `
-                <div class="w-4 h-4 bg-peach-500 rotate-45 rounded-xs flex items-center justify-center">
-                    <div class="w-2 h-2 bg-white rotate-45 rounded-xs"></div>
-                </div>
-                Sim Szerkesztése: ${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}
-            `;
-
-            document.getElementById('simLastName').value = sim.last_name || '';
-            document.getElementById('simFirstName').value = sim.first_name || '';
-            document.getElementById('simAvatarPreview').src = sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
-            
-            simGalleryImages = sim.gallery ? [...sim.gallery] : [];
-            renderSimGalleryUI();
-
-            setSimStatus(sim.status || 'alive');
-            simSelectedAge = sim.age || 'Fiatal felnőtt';
-            simSelectedFrame = sim.frame_color || 'border-peach-500 shadow-peach-500/50';
-            
-            const outerFrame = document.getElementById('simAvatarOuterFrame');
-            if (outerFrame) {
-                outerFrame.className = `w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 ${simSelectedFrame} overflow-hidden bg-stone-100 dark:bg-stone-800 shadow-lg relative transition-all duration-300`;
-            }
-
-            document.getElementById('simAvatarEffect').value = 'none';
-            applySimImageEffect('none');
-
-            populateParentSelects();
-            document.getElementById('simMotherSelect').value = sim.mother_id || '';
-            document.getElementById('simFatherSelect').value = sim.father_id || '';
-
-            document.getElementById('createSimModal').classList.remove('hidden');
-        }
-
-        function closeCreateSimModal() {
-            document.getElementById('createSimModal').classList.add('hidden');
-            editingSimId = null;
-        }
-
-        function setSimStatus(status) {
-            simStatusValue = status;
-            const aliveBtn = document.getElementById('statusAliveBtn');
-            const deadBtn = document.getElementById('statusDeadBtn');
-            if (status === 'alive') {
-                aliveBtn.className = "px-5 py-2 rounded-xl bg-peach-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2";
-                deadBtn.className = "px-5 py-2 rounded-xl text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center gap-2";
-            } else {
-                deadBtn.className = "px-5 py-2 rounded-xl bg-stone-700 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2";
-                aliveBtn.className = "px-5 py-2 rounded-xl text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center gap-2";
-            }
-        }
-
-        function applySimImageEffect(effect) {
-            const preview = document.getElementById('simAvatarPreview');
-            if (preview) {
-                preview.style.filter = effect === 'none' ? '' : effect;
-            }
-        }
-
         async function handleCreateSimSubmit(e) {
             e.preventDefault();
-            if (!activeFamilyTree || !supabaseClient || !currentUser) return;
+            if (!activeFamilyTree || !currentUser || !supabaseClient) {
+                alert("Nincs kiválasztott családfa vagy bejelentkezett felhasználó!");
+                return;
+            }
 
             const lastName = document.getElementById('simLastName').value.trim();
             const firstName = document.getElementById('simFirstName').value.trim();
@@ -1574,50 +1356,50 @@
             const motherId = document.getElementById('simMotherSelect').value || null;
             const fatherId = document.getElementById('simFatherSelect').value || null;
 
-            if (editingSimId) {
-                const { error } = await supabaseClient
-                    .from('sims')
-                    .update({
-                        last_name: lastName,
-                        first_name: firstName,
-                        avatar_url: avatarUrl,
-                        status: simStatusValue,
-                        age: simSelectedAge,
-                        frame_color: simSelectedFrame,
-                        gallery: simGalleryImages,
-                        mother_id: motherId,
-                        father_id: fatherId
-                    })
-                    .eq('id', editingSimId);
+            const newSimData = {
+                family_tree_id: activeFamilyTree.id,
+                user_id: currentUser.id,
+                last_name: lastName,
+                first_name: firstName,
+                status: simStatusValue,
+                age: simSelectedAge,
+                frame_color: simSelectedFrame,
+                avatar_url: avatarUrl,
+                gallery: simGalleryImages,
+                mother_id: motherId,
+                father_id: fatherId,
+                pos_x: 100 + (familySims.length * 40) % 600,
+                pos_y: 120 + (familySims.length * 30) % 400
+            };
 
-                if (error) {
-                    alert('Hiba a Sim frissítésekor: ' + error.message);
-                    return;
-                }
-            } else {
-                const defaultX = 150 + (familySims.length % 5) * 160;
-                const defaultY = 150 + Math.floor(familySims.length / 5) * 200;
+            const { data, error } = await supabaseClient
+                .from('sims')
+                .insert([newSimData])
+                .select();
 
-                const { error } = await supabaseClient
-                    .from('sims')
-                    .insert([{
-                        family_tree_id: activeFamilyTree.id,
-                        last_name: lastName,
-                        first_name: firstName,
-                        avatar_url: avatarUrl,
-                        status: simStatusValue,
-                        age: simSelectedAge,
-                        frame_color: simSelectedFrame,
-                        gallery: simGalleryImages,
-                        mother_id: motherId,
-                        father_id: fatherId,
-                        pos_x: defaultX,
-                        pos_y: defaultY
-                    }]);
+            if (error) {
+                alert("Hiba a Sim mentésekor: " + error.message);
+                console.error(error);
+                return;
+            }
 
-                if (error) {
-                    alert('Hiba a Sim létrehozásakor: ' + error.message);
-                    return;
+            const createdSim = data ? data[0] : null;
+
+            // --- ÚJ: Kölcsönös szülő-gyerek frissítés a kiválasztott szülőknél is ---
+            if (createdSim && (motherId || fatherId)) {
+                const parentsToUpdate = [motherId, fatherId].filter(id => id !== null);
+                for (let pId of parentsToUpdate) {
+                    const parentSim = familySims.find(s => s.id === pId);
+                    if (parentSim) {
+                        let childrenList = parentSim.children || [];
+                        if (!childrenList.includes(createdSim.id)) {
+                            childrenList.push(createdSim.id);
+                            await supabaseClient
+                                .from('sims')
+                                .update({ children: childrenList })
+                                .eq('id', pId);
+                        }
+                    }
                 }
             }
 
@@ -1625,170 +1407,392 @@
             await fetchSimsForActiveTree();
         }
 
-        // HÁTTÉR TESTRESZABÁS LOGIKA
-        function handlePresetBackgroundChange(val) {
-            if (!val) return;
-            currentBgConfig.value = val;
-            applyTreeBackground();
-            saveBackgroundConfig();
+        function handleSimGalleryUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    simGalleryImages.push(e.target.result);
+                    renderSimGalleryUI();
+                };
+                reader.readAsDataURL(file);
+            }
+            event.target.value = '';
         }
 
-        function handleLocalImageUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                currentBgConfig.value = `url('${evt.target.result}')`;
-                applyTreeBackground();
-                saveBackgroundConfig();
+        function renderSimGalleryUI() {
+            const container = document.getElementById('simGalleryContainer');
+            if (!container) return;
+
+            let html = `
+                <button type="button" onclick="document.getElementById('simGalleryFileInput').click()" class="flex-shrink-0 w-24 h-24 rounded-2xl border-2 border-dashed border-peach-400 bg-peach-500/10 hover:bg-peach-500/20 text-peach-600 dark:text-peach-400 flex flex-col items-center justify-center gap-1 transition shadow-sm sticky left-0 z-10 backdrop-blur-xs" title="Kép hozzáadása a Sim életéről">
+                    <i class="fa-solid fa-plus text-xl"></i>
+                    <span class="text-[10px] font-bold">Hozzáadás</span>
+                </button>
+            `;
+
+            simGalleryImages.forEach((imgUrl, index) => {
+                html += `
+                    <div class="flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 border-peach-300 relative group shadow-sm bg-stone-900 cursor-pointer" onclick="openGalleryLightbox(${index})">
+                        <img src="${imgUrl}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                        <button type="button" onclick="event.stopPropagation(); removeSimGalleryImage(${index})" class="absolute top-1 right-1 bg-stone-950/70 hover:bg-rose-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition shadow" title="Kép törlése">
+                            <i class="fa-solid fa-trash-can text-[10px]"></i>
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function removeSimGalleryImage(index) {
+            simGalleryImages.splice(index, 1);
+            renderSimGalleryUI();
+        }
+
+        function openGalleryLightbox(index) {
+            if (simGalleryImages.length === 0) return;
+            currentLightboxIndex = index;
+            updateLightboxContent();
+            document.getElementById('galleryLightboxModal').classList.remove('hidden');
+        }
+
+        function closeGalleryLightbox() {
+            document.getElementById('galleryLightboxModal').classList.add('hidden');
+        }
+
+        function prevGalleryImage() {
+            if (simGalleryImages.length === 0) return;
+            currentLightboxIndex = (currentLightboxIndex - 1 + simGalleryImages.length) % simGalleryImages.length;
+            updateLightboxContent();
+        }
+
+        function nextGalleryImage() {
+            if (simGalleryImages.length === 0) return;
+            currentLightboxIndex = (currentLightboxIndex + 1) % simGalleryImages.length;
+            updateLightboxContent();
+        }
+
+        function updateLightboxContent() {
+            const imgEl = document.getElementById('lightboxImage');
+            const counterEl = document.getElementById('lightboxCounter');
+            if (simGalleryImages[currentLightboxIndex]) {
+                imgEl.src = simGalleryImages[currentLightboxIndex];
+                counterEl.textContent = `${currentLightboxIndex + 1} / ${simGalleryImages.length}`;
+            }
+        }
+
+        function resetBgConfig() {
+            currentBgConfig = {
+                value: '',
+                size: 'cover',
+                blur: 0
             };
-            reader.readAsDataURL(file);
-        }
-
-        function handleBgSizeChange(val) {
-            currentBgConfig.size = val;
-            applyTreeBackground();
-            saveBackgroundConfig();
-        }
-
-        function handleBgBlurChange(val) {
-            currentBgConfig.blur = parseInt(val);
-            document.getElementById('blurValueLabel').textContent = `${val} px`;
-            applyTreeBackground();
-            saveBackgroundConfig();
-        }
-
-        function clearTreeBackground() {
-            currentBgConfig = { value: '', size: 'cover', blur: 0 };
-            document.getElementById('presetBackgroundSelect').value = '';
-            document.getElementById('bgSizeSelect').value = 'cover';
-            document.getElementById('bgBlurRange').value = 0;
-            document.getElementById('blurValueLabel').textContent = '0 px';
-            applyTreeBackground();
-            saveBackgroundConfig();
         }
 
         function applyTreeBackground() {
             const container = document.getElementById('treeBackgroundContainer');
             if (!container) return;
 
-            let bgVal = currentBgConfig.value;
-            if (!bgVal) {
-                const isDark = document.body.classList.contains('dark-mode');
-                bgVal = isDark ? 'linear-gradient(135deg, #1f1715 0%, #2b1d1a 50%, #171110 100%)' : 'linear-gradient(135deg, #fdf8f5 0%, #fbece4 50%, #f4e3dc 100%)';
-            }
+            const { value, size, blur } = currentBgConfig;
 
-            container.style.background = bgVal;
-            if (bgVal.startsWith('url(')) {
-                container.style.backgroundSize = currentBgConfig.size;
-                container.style.backgroundRepeat = currentBgConfig.size === 'repeat' ? 'repeat' : 'no-repeat';
-                container.style.backgroundPosition = 'center center';
+            container.style.filter = blur > 0 ? `blur(${blur}px)` : 'none';
+            if (blur > 0) {
+                container.style.transform = `scale(1.05)`;
             } else {
-                container.style.backgroundSize = 'cover';
-                container.style.backgroundRepeat = 'no-repeat';
-                container.style.backgroundPosition = 'center center';
+                container.style.transform = 'scale(1)';
             }
 
-            container.style.filter = currentBgConfig.blur > 0 ? `blur(${currentBgConfig.blur}px)` : 'none';
+            if (!value) {
+                container.style.backgroundImage = 'none';
+                container.style.background = document.body.classList.contains('dark-mode') 
+                    ? 'linear-gradient(135deg, #1f1715 0%, #2b1d1a 50%, #171110 100%)' 
+                    : 'linear-gradient(135deg, #fdf8f5 0%, #fbece4 50%, #f4e3dc 100%)';
+                return;
+            }
+
+            if (value.startsWith('url')) {
+                container.style.backgroundImage = value;
+                container.style.backgroundSize = size;
+                container.style.backgroundRepeat = size === 'repeat' ? 'repeat' : 'no-repeat';
+                container.style.backgroundPosition = 'center';
+            } else {
+                container.style.backgroundImage = 'none';
+                container.style.background = value;
+            }
         }
 
         function syncCustomizationUI() {
-            document.getElementById('bgSizeSelect').value = currentBgConfig.size || 'cover';
-            document.getElementById('bgBlurRange').value = currentBgConfig.blur || 0;
-            document.getElementById('blurValueLabel').textContent = `${currentBgConfig.blur || 0} px`;
-            if (currentBgConfig.value && !currentBgConfig.value.startsWith('url(')) {
-                document.getElementById('presetBackgroundSelect').value = currentBgConfig.value;
-            } else {
-                document.getElementById('presetBackgroundSelect').value = '';
+            const { value, size, blur } = currentBgConfig;
+            
+            const selectPreset = document.getElementById('presetBackgroundSelect');
+            if (selectPreset) {
+                selectPreset.value = value && !value.startsWith('url') ? value : '';
+            }
+
+            const selectSize = document.getElementById('bgSizeSelect');
+            if (selectSize) {
+                selectSize.value = size;
+            }
+
+            const rangeBlur = document.getElementById('bgBlurRange');
+            const labelBlur = document.getElementById('blurValueLabel');
+            if (rangeBlur && labelBlur) {
+                rangeBlur.value = blur;
+                labelBlur.textContent = `${blur} px`;
             }
         }
 
-        async function saveBackgroundConfig() {
-            if (!activeFamilyTree || !supabaseClient || !currentUser) return;
+        async function saveBackgroundConfigToDB() {
+            if (!activeFamilyTree) return;
 
             try {
                 localStorage.setItem(`s4memo_bgconf_${activeFamilyTree.id}`, JSON.stringify(currentBgConfig));
-                await supabaseClient
-                    .from('family_trees')
-                    .update({ background_config: currentBgConfig })
-                    .eq('id', activeFamilyTree.id);
-            } catch (e) {
-                console.error("Hiba a háttér mentésekor:", e);
+                localStorage.setItem(`s4memo_bg_${activeFamilyTree.id}`, currentBgConfig.value);
+            } catch(e) {}
+
+            if (!currentUser || !supabaseClient) return;
+
+            const { error } = await supabaseClient
+                .from('family_trees')
+                .update({ 
+                    background: currentBgConfig.value,
+                    background_config: currentBgConfig 
+                })
+                .eq('id', activeFamilyTree.id)
+                .eq('user_id', currentUser.id);
+
+            if (error) {
+                console.error("Háttér konfiguráció mentési hiba (DB):", error.message);
             }
         }
 
-        function resetBgConfig() {
-            currentBgConfig = { value: '', size: 'cover', blur: 0 };
+        function handlePresetBackgroundChange(value) {
+            if (!activeFamilyTree || !value) return;
+            currentBgConfig.value = value;
+            applyTreeBackground();
+            saveBackgroundConfigToDB();
         }
 
-        // SIM GALLÉRIA ÉS AVATAR CROBBER MÜVELETEK
-        function handleSimAvatarUpload(e) {
-            const file = e.target.files[0];
+        function handleLocalImageUpload(event) {
+            const file = event.target.files[0];
             if (!file) return;
+
             const reader = new FileReader();
-            reader.onload = function(evt) {
-                const img = new Image();
-                img.onload = function() {
-                    simImageTransform.naturalWidth = img.naturalWidth;
-                    simImageTransform.naturalHeight = img.naturalHeight;
-                    simImageTransform.scale = 1;
-                    simImageTransform.x = 0;
-                    simImageTransform.y = 0;
-
-                    const cropperImg = document.getElementById('cropperImage');
-                    cropperImg.src = evt.target.result;
-                    cropperImg.style.width = `${img.naturalWidth}px`;
-                    cropperImg.style.height = `${img.naturalHeight}px`;
-                    updateCropperTransform();
-
-                    document.getElementById('imageCropperModal').classList.remove('hidden');
-                };
-                img.src = evt.target.result;
+            reader.onload = function(e) {
+                const resultUrl = e.target.result;
+                if (activeFamilyTree) {
+                    currentBgConfig.value = `url('${resultUrl}')`;
+                    applyTreeBackground();
+                    saveBackgroundConfigToDB();
+                }
             };
             reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function handleSimAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const imageUrl = URL.createObjectURL(file);
+                const avatarImg = document.getElementById('simAvatarPreview'); 
+                if (avatarImg) {
+                    avatarImg.src = imageUrl;
+                }
+
+                const cropperImg = document.getElementById('cropperImage');
+                if (cropperImg) {
+                    cropperImg.src = imageUrl;
+                    cropperImg.onload = function() {
+                        initCropperTransform(cropperImg);
+                        openImageCropperModal();
+                    };
+                }
+            }
+        }
+
+        function handleBgSizeChange(sizeValue) {
+            if (!activeFamilyTree) return;
+            currentBgConfig.size = sizeValue;
+            applyTreeBackground();
+            saveBackgroundConfigToDB();
+        }
+
+        function handleBgBlurChange(blurValue) {
+            if (!activeFamilyTree) return;
+            currentBgConfig.blur = parseInt(blurValue, 10) || 0;
+            
+            const labelBlur = document.getElementById('blurValueLabel');
+            if (labelBlur) {
+                labelBlur.textContent = `${currentBgConfig.blur} px`;
+            }
+
+            applyTreeBackground();
+            saveBackgroundConfigToDB();
+        }
+
+        function clearTreeBackground() {
+            if (!activeFamilyTree) return;
+            resetBgConfig();
+            applyTreeBackground();
+            syncCustomizationUI();
+            
+            try {
+                localStorage.removeItem(`s4memo_bg_${activeFamilyTree.id}`);
+                localStorage.removeItem(`s4memo_bgconf_${activeFamilyTree.id}`);
+            } catch(e) {}
+
+            saveBackgroundConfigToDB();
+        }
+
+        function switchSimModalTab(tab) {
+            const btnKarakter = document.getElementById('simTabBtnKarakter');
+            const btnNaplo = document.getElementById('simTabBtnNaplo');
+            const contentKarakter = document.getElementById('simTabContentKarakter');
+            const contentNaplo = document.getElementById('simTabContentNaplo');
+
+            if (tab === 'karakter') {
+                btnKarakter.className = "flex-1 py-2.5 rounded-xl bg-peach-500 text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 font-cinzel";
+                btnNaplo.className = "flex-1 py-2.5 rounded-xl text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 font-cinzel";
+                contentKarakter.classList.remove('hidden');
+                contentNaplo.classList.add('hidden');
+            } else {
+                btnNaplo.className = "flex-1 py-2.5 rounded-xl bg-peach-500 text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 font-cinzel";
+                btnKarakter.className = "flex-1 py-2.5 rounded-xl text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 font-cinzel";
+                contentNaplo.classList.remove('hidden');
+                contentKarakter.classList.add('hidden');
+            }
+        }
+
+        function setSimStatus(status) {
+            simStatusValue = status;
+            const btnAlive = document.getElementById('statusAliveBtn');
+            const btnDead = document.getElementById('statusDeadBtn');
+
+            if (status === 'alive') {
+                btnAlive.className = "px-5 py-2 rounded-xl bg-peach-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2";
+                btnDead.className = "px-5 py-2 rounded-xl text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center gap-2";
+            } else {
+                btnDead.className = "px-5 py-2 rounded-xl bg-stone-700 text-stone-100 font-bold text-xs shadow-md transition-all flex items-center gap-2";
+                btnAlive.className = "px-5 py-2 rounded-xl text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center gap-2";
+            }
+
+            updateSimPreviewStyle();
+        }
+
+        function updateSimPreviewStyle() {
+            const previewImg = document.getElementById('simAvatarPreview');
+            let effect = document.getElementById('simAvatarEffect').value;
+            if (effect === 'none') effect = '';
+
+            let deadFilter = simStatusValue === 'dead' ? 'grayscale(85%) brightness(75%) contrast(90%)' : '';
+            previewImg.style.filter = `${effect} ${deadFilter}`.trim();
+        }
+
+        function applySimImageEffect(effectValue) {
+            updateSimPreviewStyle();
+        }
+
+        function openCreateSimModal() {
+            if (!activeFamilyTree) return;
+            
+            simStatusValue = 'alive';
+            setSimStatus('alive');
+            simSelectedAge = 'Fiatal felnőtt';
+            simSelectedFrame = 'border-peach-500 shadow-peach-500/50';
+
+            const defaultImgUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80';
+            const img = document.getElementById('simAvatarPreview');
+            img.src = defaultImgUrl;
+            img.style.transform = 'none';
+
+            const outerFrame = document.getElementById('simAvatarOuterFrame');
+            if (outerFrame) {
+                outerFrame.className = "w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-peach-500 overflow-hidden bg-stone-100 dark:bg-stone-800 shadow-lg relative transition-all duration-300";
+            }
+
+            simImageTransform = { scale: 1, x: 0, y: 0 };
+            simGalleryImages = [];
+            renderSimGalleryUI();
+            populateParentSelects();
+
+            document.getElementById('simAvatarEffect').value = 'none';
+            document.getElementById('simLocalAvatarInput').value = '';
+            document.getElementById('simLastName').value = '';
+            document.getElementById('simFirstName').value = '';
+            document.getElementById('simAgeSelect').value = 'Fiatal felnőtt';
+            document.getElementById('simFrameColorSelect').value = 'border-peach-500 shadow-peach-500/50';
+            document.getElementById('simMotherSelect').value = '';
+            document.getElementById('simFatherSelect').value = '';
+
+            document.getElementById('simAgeDropdown').classList.add('hidden');
+            document.getElementById('simFrameDropdown').classList.add('hidden');
+
+            switchSimModalTab('karakter');
+            document.getElementById('createSimModal').classList.remove('hidden');
+        }
+
+        function closeCreateSimModal() {
+            document.getElementById('createSimModal').classList.add('hidden');
         }
 
         function openImageCropperModal() {
-            const currentSrc = document.getElementById('simAvatarPreview').src;
-            const img = new Image();
-            img.onload = function() {
-                simImageTransform.naturalWidth = img.naturalWidth;
-                simImageTransform.naturalHeight = img.naturalHeight;
-                simImageTransform.scale = 1;
-                simImageTransform.x = 0;
-                simImageTransform.y = 0;
+            const cropperImg = document.getElementById('cropperImage');
+            const previewImg = document.getElementById('simAvatarPreview');
+            
+            if (!cropperImg.src || cropperImg.src === window.location.href) {
+                cropperImg.src = previewImg.src;
+            }
 
-                const cropperImg = document.getElementById('cropperImage');
-                cropperImg.src = currentSrc;
-                cropperImg.style.width = `${img.naturalWidth}px`;
-                cropperImg.style.height = `${img.naturalHeight}px`;
-                updateCropperTransform();
-
-                document.getElementById('imageCropperModal').classList.remove('hidden');
+            cropperImg.onload = function() {
+                initCropperTransform(cropperImg);
             };
-            img.src = currentSrc;
+
+            document.getElementById('imageCropperModal').classList.remove('hidden');
         }
 
         function closeImageCropperModal() {
             document.getElementById('imageCropperModal').classList.add('hidden');
         }
 
-        function updateCropperTransform() {
+        function initCropperTransform(img) {
+            const viewport = document.getElementById('cropperViewport');
+            const vWidth = viewport.clientWidth;
+            const vHeight = viewport.clientHeight;
+
+            simImageTransform.naturalWidth = img.naturalWidth;
+            simImageTransform.naturalHeight = img.naturalHeight;
+
+            const minDim = Math.min(img.naturalWidth, img.naturalHeight);
+            simImageTransform.scale = vWidth / minDim;
+
+            img.style.width = `${img.naturalWidth}px`;
+            img.style.height = `${img.naturalHeight}px`;
+
+            simImageTransform.x = (vWidth - img.naturalWidth * simImageTransform.scale) / 2;
+            simImageTransform.y = (vHeight - img.naturalHeight * simImageTransform.scale) / 2;
+
+            updateCropperImageTransform();
+        }
+
+        function updateCropperImageTransform() {
             const img = document.getElementById('cropperImage');
-            if (img) {
-                img.style.transform = `translate(${simImageTransform.x}px, ${simImageTransform.y}px) scale(${simImageTransform.scale})`;
-            }
+            if (!img) return;
+            img.style.transform = `translate(${simImageTransform.x}px, ${simImageTransform.y}px) scale(${simImageTransform.scale})`;
         }
 
         function handleCropperWheel(e) {
             e.preventDefault();
-            const zoomStep = 0.1;
+            const zoomIntensity = 0.1;
             if (e.deltaY < 0) {
-                simImageTransform.scale = Math.min(simImageTransform.scale + zoomStep, 4);
+                simImageTransform.scale *= (1 + zoomIntensity);
             } else {
-                simImageTransform.scale = Math.max(simImageTransform.scale - zoomStep, 0.2);
+                simImageTransform.scale = Math.max(0.2, simImageTransform.scale * (1 - zoomIntensity));
             }
-            updateCropperTransform();
+            updateCropperImageTransform();
         }
 
         function startCropperDrag(e) {
@@ -1801,9 +1805,10 @@
             if (!isDraggingCropper) return;
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
             simImageTransform.x = clientX - dragStartX;
             simImageTransform.y = clientY - dragStartY;
-            updateCropperTransform();
+            updateCropperImageTransform();
         }
 
         function endCropperDrag() {
@@ -1823,127 +1828,43 @@
         }
 
         function saveCroppedImage() {
-            const viewport = document.getElementById('cropperViewport');
             const cropperImg = document.getElementById('cropperImage');
-            if (!viewport || !cropperImg) return;
+            const viewport = document.getElementById('cropperViewport');
+            const vWidth = viewport.clientWidth;
+            const vHeight = viewport.clientHeight;
 
             const canvas = document.createElement('canvas');
             canvas.width = 300;
             canvas.height = 300;
             const ctx = canvas.getContext('2d');
 
-            const vRect = viewport.getBoundingClientRect();
-            const imgRect = cropperImg.getBoundingClientRect();
+            ctx.beginPath();
+            ctx.arc(150, 150, 150, 0, Math.PI * 2, true);
+            ctx.closePath();
+            ctx.clip();
 
-            const renderScale = cropperImg.naturalWidth / imgRect.width;
-            const offsetX = (vRect.left - imgRect.left) * renderScale;
-            const offsetY = (vRect.top - imgRect.top) * renderScale;
+            ctx.fillStyle = '#1c1917';
+            ctx.fillRect(0, 0, 300, 300);
 
-            ctx.drawImage(
-                cropperImg,
-                offsetX, offsetY,
-                vRect.width * renderScale, vRect.height * renderScale,
-                0, 0,
-                300, 300
-            );
+            ctx.save();
+            const scaleFactor = 300 / vWidth;
+            ctx.scale(scaleFactor, scaleFactor);
+            ctx.translate(simImageTransform.x, simImageTransform.y);
+            ctx.scale(simImageTransform.scale, simImageTransform.scale);
+            ctx.drawImage(cropperImg, 0, 0);
+            ctx.restore();
 
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-            document.getElementById('simAvatarPreview').src = dataUrl;
+            const finalDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            document.getElementById('simAvatarPreview').src = finalDataUrl;
+
             closeImageCropperModal();
         }
 
-        function handleSimGalleryUpload(e) {
-            const files = e.target.files;
-            if (!files || files.length === 0) return;
-
-            for (let i = 0; i < files.length; i++) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    simGalleryImages.push(evt.target.result);
-                    renderSimGalleryUI();
-                };
-                reader.readAsDataURL(files[i]);
-            }
-        }
-
-        function renderSimGalleryUI() {
-            const container = document.getElementById('simGalleryContainer');
-            if (!container) return;
-
-            let html = `
-                <button type="button" onclick="document.getElementById('simGalleryFileInput').click()" class="flex-shrink-0 w-24 h-24 rounded-2xl border-2 border-dashed border-peach-400 bg-peach-500/10 hover:bg-peach-500/20 text-peach-600 dark:text-peach-400 flex flex-col items-center justify-center gap-1 transition shadow-sm sticky left-0 z-10 backdrop-blur-xs" title="Kép hozzáadása a Sim életéről">
-                    <i class="fa-solid fa-plus text-xl"></i>
-                    <span class="text-[10px] font-bold">Hozzáadás</span>
-                </button>
-            `;
-
-            simGalleryImages.forEach((imgUrl, index) => {
-                html += `
-                    <div class="relative flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 border-peach-300 shadow-md group">
-                        <img src="${imgUrl}" class="w-full h-full object-cover cursor-pointer" onclick="openGalleryLightbox(${index})">
-                        <button type="button" onclick="removeSimGalleryImage(${index})" class="absolute top-1 right-1 bg-rose-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition shadow">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        function removeSimGalleryImage(index) {
-            simGalleryImages.splice(index, 1);
-            renderSimGalleryUI();
-        }
-
-        function openGalleryLightbox(index) {
-            if (simGalleryImages.length === 0) return;
-            currentLightboxIndex = index;
-            document.getElementById('lightboxImage').src = simGalleryImages[currentLightboxIndex];
-            document.getElementById('lightboxCounter').textContent = `${currentLightboxIndex + 1} / ${simGalleryImages.length}`;
-            document.getElementById('galleryLightboxModal').classList.remove('hidden');
-        }
-
-        function closeGalleryLightbox() {
-            document.getElementById('galleryLightboxModal').classList.add('hidden');
-        }
-
-        function prevGalleryImage() {
-            if (simGalleryImages.length === 0) return;
-            currentLightboxIndex = (currentLightboxIndex - 1 + simGalleryImages.length) % simGalleryImages.length;
-            document.getElementById('lightboxImage').src = simGalleryImages[currentLightboxIndex];
-            document.getElementById('lightboxCounter').textContent = `${currentLightboxIndex + 1} / ${simGalleryImages.length}`;
-        }
-
-        function nextGalleryImage() {
-            if (simGalleryImages.length === 0) return;
-            currentLightboxIndex = (currentLightboxIndex + 1) % simGalleryImages.length;
-            document.getElementById('lightboxImage').src = simGalleryImages[currentLightboxIndex];
-            document.getElementById('lightboxCounter').textContent = `${currentLightboxIndex + 1} / ${simGalleryImages.length}`;
-        }
-
-        function switchSimModalTab(tab) {
-            const btnK = document.getElementById('simTabBtnKarakter');
-            const btnN = document.getElementById('simTabBtnNaplo');
-            const conK = document.getElementById('simTabContentKarakter');
-            const conN = document.getElementById('simTabContentNaplo');
-
-            if (tab === 'karakter') {
-                btnK.className = "flex-1 py-2.5 rounded-xl bg-peach-500 text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 font-cinzel";
-                btnN.className = "flex-1 py-2.5 rounded-xl text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 font-cinzel";
-                conK.classList.remove('hidden');
-                conN.classList.add('hidden');
-            } else {
-                btnN.className = "flex-1 py-2.5 rounded-xl bg-peach-500 text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 font-cinzel";
-                btnK.className = "flex-1 py-2.5 rounded-xl text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 font-cinzel";
-                conN.classList.remove('hidden');
-                conK.classList.add('hidden');
-            }
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
         }
     </script>
 </body>
