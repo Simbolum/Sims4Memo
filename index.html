@@ -226,7 +226,7 @@
 
                     <button onclick="openProfileModal()" class="flex items-center gap-2.5 px-3.5 py-2 rounded-full glass-panel hover:border-peach-400 transition-all shadow-sm">
                         <div class="relative">
-                            <img id="headerProfileImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Profil" class="w-6 h-6 rounded-full object-cover border-2 border-peach-500">
+                            <img id="headerProfileImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Profil" class="w-6 h-6 rounded-full object-cover border-2 border-peach-500" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22%3E%3Crect width=%2224%22 height=%2224%22 fill=%22%231c1917%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2210%22 fill=%22%23978b6e%22%3E?%3C/text%3E%3C/svg%3E';">
                         </div>
                         <span id="headerProfileName" class="text-xs font-bold hidden sm:inline">Profilom</span>
                         <i class="fa-solid fa-gear text-xs text-stone-500 ml-0.5"></i>
@@ -674,7 +674,7 @@
             <form id="profileForm" onsubmit="handleProfileSave(event)" class="space-y-4">
                 <div class="flex flex-col items-center justify-center mb-4">
                     <div id="avatarFramePreview" class="relative p-1 rounded-full border-2 border-peach-500 shadow-lg">
-                        <img id="modalAvatarPreview" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" class="w-20 h-20 rounded-full object-cover">
+                        <img id="modalAvatarPreview" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" class="w-20 h-20 rounded-full object-cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Crect width=%2280%22 height=%2280%22 fill=%22%231c1917%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2212%22 fill=%22%23978b6e%22%3E?%3C/text%3E%3C/svg%3E';">
                     </div>
                     <span class="text-[11px] text-stone-500 mt-2 font-medium">Válaszd ki a profilképed és kereted</span>
                 </div>
@@ -799,16 +799,20 @@
             }
 
             if (!supabaseClient) {
-                alert("Kérlek add meg a Supabase URL-t és Anon Key-t a kódban!");
+                console.warn("Supabase kliens nem elérhető");
                 return;
             }
 
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            await handleSession(session);
-
-            supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
                 await handleSession(session);
-            });
+
+                supabaseClient.auth.onAuthStateChange(async (event, session) => {
+                    await handleSession(session);
+                });
+            } catch (error) {
+                console.warn("Supabase hiba:", error);
+            }
 
             // Globális egér/érintés események a Sim húzáshoz
             window.addEventListener('mousemove', handleGlobalSimDragMove);
@@ -887,7 +891,11 @@ let contextMenuTargetSimId = null;
     document.getElementById('simModalTitle').textContent = "Sim Szerkesztése";
     document.getElementById('simLastName').value = sim.last_name || '';
     document.getElementById('simFirstName').value = sim.first_name || '';
-    document.getElementById('simAvatarPreview').src = sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
+    const avatarPreview = document.getElementById('simAvatarPreview');
+    avatarPreview.src = sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
+    avatarPreview.onerror = function() {
+        this.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22128%22 height=%22128%22 viewBox=%220 0 128 128%22%3E%3Crect width=%22128%22 height=%22128%22 fill=%22%231c1917%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2214%22 fill=%22%23978b6e%22%3E?%3C/text%3E%3C/svg%3E';
+    };
 
     simGalleryImages = []; // Mindig üres galeria indul szerkesztéskor - csak felhasználó adhat hozzá
     renderSimGalleryUI();
@@ -1359,7 +1367,7 @@ let contextMenuTargetSimId = null;
          oncontextmenu="openSimContextMenu(event, '${sim.id}')"
          title="Fogd meg a mozgatáshoz: ${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}">
                         <div class="w-20 h-20 rounded-full overflow-hidden border-4 ${statusBorder} shadow-xl relative bg-stone-900 pointer-events-none">
-                            <img src="${sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}" class="w-full h-full object-cover">
+                            <img src="${sim.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22%3E%3Crect width=%2280%22 height=%2280%22 fill=%22%231c1917%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2212%22 fill=%22%23978b6e%22%3E?%3C/text%3E%3C/svg%3E';">
                         </div>
                         <div class="text-center truncate w-full pointer-events-none drop-shadow-md">
                             <h4 class="text-xs font-bold font-cinzel text-stone-900 dark:text-stone-100 truncate bg-white/70 dark:bg-stone-900/70 px-2 py-0.5 rounded-full backdrop-blur-xs border border-peach-200/40 dark:border-stone-700/50">${escapeHtml(sim.last_name)} ${escapeHtml(sim.first_name)}</h4>
