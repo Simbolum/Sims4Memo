@@ -1495,6 +1495,7 @@ let contextMenuTargetSimId = null;
         simData.pos_y = 120 + (familySims.length * 30) % 400;
 
         // Itt mentjük el, és elKÉRJÜK a visszatérő adatot (.select().single()), hogy megkapjuk az ID-ját
+        console.log("Küldött simData:", simData);
         const { data: createdSims, error } = await supabaseClient
             .from('sims')
             .insert([simData])
